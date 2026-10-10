@@ -434,7 +434,7 @@ q.addEventListener('input',doSearch);q.addEventListener('focus',doSearch);
 q.addEventListener('keydown',e=>{if(e.key==='Escape'){q.value='';doSearch();q.blur()}});
 document.addEventListener('click',e=>{if(!e.target.closest('.sr'))sres.classList.remove('on')});
 /* ===== Яндекс Диск: вход через Яндекс и синхронизация ===== */
-const CLIENT_ID='';/* ID приложения Яндекса можно вписать сюда: тогда вводить его на каждом устройстве не придётся */
+const CLIENT_ID='32db2310c73d4b0b9af978176aae6e66';/* ID приложения Яндекса можно вписать сюда: тогда вводить его на каждом устройстве не придётся */
 const API='https://cloud-api.yandex.net/v1/disk/',FILEP='app:/plan-knigi-data.json',TK='plan-knigi-ya',CK='plan-knigi-yacid';
 const G={cid:'',token:null,exp:0,base:null,dirty:false,pushing:false,timer:null,st:null,err:'',at:0,ready:false,force:false,offline:false,busyRc:false};
 let bsay=()=>{};
@@ -539,11 +539,11 @@ function gateUI(retry){const g=document.getElementById('gate');g.style.display='
  const noConn=gb('Продолжить без подключения (данные только на этом устройстве)',()=>{G.token=null;if(G.ready){g.style.display='none'}else startOffline()},1);
  if(!G.cid){const inp=h('input',{placeholder:'ID приложения, например 0123456789abcdef0123456789abcdef'}),cb=location.origin+location.pathname.replace(/index\.html$/,'');
   g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'📖 План книги'),
-   h('p',{},'Данные сайта хранятся на вашем Яндекс Диске, а вход выполняется через ваш аккаунт Яндекса. Чтобы это заработало, один раз зарегистрируйте приложение (бесплатно, без карты):'),
+   h('p',{},'Сайт ещё не настроен. Это один раз делает владелец сайта: обычные посетители потом увидят только кнопку «Войти через Яндекс», а данные каждого хранятся на его собственном Яндекс Диске. Регистрация приложения бесплатна, банковская карта не нужна:'),
    h('ol',{},h('li',{},'Откройте oauth.yandex.ru и нажмите «Создать приложение» (нужен аккаунт Яндекса).'),
     h('li',{},'Название: любое, например «План книги». Платформы: «Веб-сервисы». Callback URI: '+cb),
     h('li',{},'Доступ к данным: Яндекс Диск REST API → «Доступ к папке приложения на Диске» (cloud_api:disk.app_folder).'),
-    h('li',{},'Создайте приложение и скопируйте «ID приложения» (Client ID). Вставьте его ниже.')),
+    h('li',{},'Создайте приложение и скопируйте «ID приложения» (Client ID).'),h('li',{},'Чтобы этот экран больше никому не показывался, впишите ID в файл сайта index.html: найдите строку const CLIENT_ID=\'\'; и вставьте ID между кавычками. Для проверки на этом устройстве ID можно ввести ниже.')),
    inp,gb('Сохранить и продолжить',()=>{const v=inp.value.trim();if(!/^[0-9a-f]{20,}$/i.test(v)){gm('ID выглядит иначе: это длинный набор латинских букв и цифр');return}localStorage.setItem(CK,v);gateUI(true)}),noConn,msg,
    h('p',{class:'gnote'},'Файл с данными лежит на Яндекс Диске в папке «Приложения». Пароль от Яндекса сайт не видит и не хранит.')));return}
  if(G.token&&Date.now()<G.exp){
@@ -552,7 +552,7 @@ function gateUI(retry){const g=document.getElementById('gate');g.style.display='
   if(!retry)connect();return}
  if(G.token&&!note)note='Вход истёк. Нажмите «Войти через Яндекс».';
  g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'📖 План книги'),h('p',{},'Данные хранятся на вашем Яндекс Диске. Войдите через Яндекс, чтобы продолжить.'),
-  gb('Войти через Яндекс',loginYa),noConn,msg,h('p',{class:'gnote'},h('a',{href:'#',on:{click:e=>{e.preventDefault();localStorage.removeItem(CK);gateUI(true)}}},'Сменить ID приложения'))))}
+  gb('Войти через Яндекс',loginYa),noConn,msg,CLIENT_ID?'':h('p',{class:'gnote'},h('a',{href:'#',on:{click:e=>{e.preventDefault();localStorage.removeItem(CK);gateUI(true)}}},'Сменить ID приложения'))))}
 function initGate(){gateUI()}
 function disconnect(){localStorage.removeItem(TK);G.token=null;G.ready=false;closeModal();updBk();gateUI(true)}
 /* файлы: восстановить */
