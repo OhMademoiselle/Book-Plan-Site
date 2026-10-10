@@ -435,7 +435,7 @@ q.addEventListener('keydown',e=>{if(e.key==='Escape'){q.value='';doSearch();q.bl
 document.addEventListener('click',e=>{if(!e.target.closest('.sr'))sres.classList.remove('on')});
 /* ===== Яндекс Диск: вход через Яндекс и синхронизация ===== */
 const CLIENT_ID='32db2310c73d4b0b9af978176aae6e66';/* ID приложения Яндекса можно вписать сюда: тогда вводить его на каждом устройстве не придётся */
-const API='https://cloud-api.yandex.net/v1/disk/',FILEP='app:/plan-knigi-data.json',TK='plan-knigi-ya',CK='plan-knigi-yacid';
+const API='https://cloud-api.yandex.net/v1/disk/',FILEP='app:/plan-knigi-data.js',TK='plan-knigi-ya',CK='plan-knigi-yacid';
 const G={cid:'',token:null,exp:0,base:null,dirty:false,pushing:false,timer:null,st:null,err:'',at:0,ready:false,force:false,offline:false,busyRc:false};
 let bsay=()=>{};
 const conn=()=>!!G.token,enc=encodeURIComponent,wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -468,11 +468,20 @@ async function yfetch(url,opt={},ms,ok404){if(!G.token||Date.now()>G.exp)throw{a
  const r=await tfetch(url,{...opt,headers:{Authorization:'OAuth '+G.token,Accept:'application/json',...(opt.headers||{})}},ms);
  if(r.status===401)throw{auth:1};
  if(!r.ok&&!(ok404&&r.status===404)){let d='';try{d=(await r.json()).description||''}catch(e){}throw{http:r.status,msg:d}}return r}
-const errMsg=e=>e&&e.net?'Нет связи с Яндекс Диском. Если интернет есть, а ошибка не пропадает, нажмите ☁ → «Проверить подключение».':e&&e.auth?'Нужно войти снова через Яндекс (правки пока сохранены в этом браузере).':e&&e.http===403?'Яндекс не разрешил доступ. Проверьте в настройках приложения, что включён доступ к папке приложения на Диске.':e&&e.http===507?'На Яндекс Диске не хватает места.':e&&e.http===429?'Яндекс просит подождать (слишком много запросов). Повторю позже.':e&&e.http?'Яндекс Диск вернул ошибку '+e.http+(e.msg?': '+e.msg:'')+'.':(e&&e.msg)||'Что-то пошло не так. Повторите позже.';
+const errMsg=e=>e&&e.script?'Яндекс Диск не отдал файл браузеру ни обычным, ни запасным способом, хотя интернет есть. Данные на Диске целы. Нажмите «Работать офлайн» и откройте ☁ → «Проверить подключение».':e&&e.net?'Нет связи с Яндекс Диском. Если интернет есть, а ошибка не пропадает, нажмите ☁ → «Проверить подключение».':e&&e.auth?'Нужно войти снова через Яндекс (правки пока сохранены в этом браузере).':e&&e.http===403?'Яндекс не разрешил доступ. Проверьте в настройках приложения, что включён доступ к папке приложения на Диске.':e&&e.http===507?'На Яндекс Диске не хватает места.':e&&e.http===429?'Яндекс просит подождать (слишком много запросов). Повторю позже.':e&&e.http?'Яндекс Диск вернул ошибку '+e.http+(e.msg?': '+e.msg:'')+'.':(e&&e.msg)||'Что-то пошло не так. Повторите позже.';
 async function getMeta(){const r=await yfetch(API+'resources?path='+enc(FILEP)+'&fields=md5,modified,size',{},25000,true);return r.status===404?null:r.json()}
-async function pullRemote(){const d=await(await yfetch(API+'resources/download?path='+enc(FILEP))).json();
- const r=await tfetch(d.href,{},30000);if(!r.ok)throw{http:r.status};const t=await r.text();let o;try{o=JSON.parse(t)}catch(e){}
- if(!o||!Array.isArray(o.tabs)||!o.tabs.length)throw{msg:'Файл «plan-knigi-data.json» на Диске пуст или повреждён. Я ничего не перезаписываю: откройте его на Яндекс Диске и посмотрите, что внутри.'};return o}
+const PREFIX='window.__planData=';
+const parseData=t=>{try{const m=String(t).match(/^window\.__planData=([\s\S]*);\s*$/);return m?JSON.parse(m[1]):null}catch(e){return null}};
+/* Яндекс не разрешает браузеру читать файлы с Диска обычным запросом, поэтому запасной способ: файл подключается как скрипт внутри изолированного окна (sandbox), которое возвращает сайту только данные */
+function frameRead(href){return new Promise((res,rej)=>{const f=document.createElement('iframe');f.setAttribute('sandbox','allow-scripts');f.style.display='none';
+ const code='<script>var s=document.createElement("script");s.onload=function(){parent.postMessage({plan:1,ok:1,d:window.__planData},"*")};s.onerror=function(){parent.postMessage({plan:1,err:1},"*")};s.src='+JSON.stringify(href).replace(/</g,'\\u003c')+';document.head.appendChild(s)<\/script>';
+ let done=false;const fin=(fn,v)=>{if(done)return;done=true;clearTimeout(to);window.removeEventListener('message',on);f.remove();fn(v)};
+ const on=ev=>{if(ev.source!==f.contentWindow||!ev.data||!ev.data.plan)return;ev.data.ok?fin(res,ev.data.d?JSON.parse(JSON.stringify(ev.data.d)):null):fin(rej,{net:1,script:1})};
+ const to=setTimeout(()=>fin(rej,{net:1,script:1}),25000);window.addEventListener('message',on);f.srcdoc=code;document.body.append(f)})}
+async function pullRemote(){const d=await(await yfetch(API+'resources/download?path='+enc(FILEP))).json();let o=null;
+ try{const r=await tfetch(d.href,{},30000);if(r.ok)o=parseData(await r.text())}catch(e){}
+ if(!o)o=await frameRead(d.href);
+ if(!o||!Array.isArray(o.tabs)||!o.tabs.length)throw{msg:'Файл «plan-knigi-data.js» на Диске пуст или повреждён. Я ничего не перезаписываю: откройте его на Яндекс Диске и посмотрите, что внутри.'};return o}
 async function putFile(content,my){let u;
  try{u=await(await yfetch(API+'resources/upload?path='+enc(FILEP)+'&overwrite=true')).json()}
  catch(e){if(e&&e.http===409){await yfetch(API+'resources?path='+enc('app:/'),{method:'PUT'}).catch(()=>{});u=await(await yfetch(API+'resources/upload?path='+enc(FILEP)+'&overwrite=true')).json()}else throw e}
@@ -482,7 +491,7 @@ async function putFile(content,my){let u;
 function dataChanged(){if(!G.ready)return;G.dirty=true;saveLocal();updBk();schedPush()}
 function schedPush(){clearTimeout(G.timer);G.timer=setTimeout(pushNow,3000)}
 async function pushNow(){clearTimeout(G.timer);if(!G.ready||!conn()||!G.dirty||G.pushing)return;G.pushing=true;G.err='';updBk();const snap=snapS(),force=G.force;
- try{const saved=new Date().toISOString(),content=JSON.stringify({app:'plan-knigi',v:2,saved,tabs:S.tabs}),my=md5(content),m=await getMeta();G.offline=false;
+ try{const saved=new Date().toISOString(),content=PREFIX+JSON.stringify({app:'plan-knigi',v:2,saved,tabs:S.tabs})+';',my=md5(content),m=await getMeta();G.offline=false;
   if(!force&&m&&m.md5!==my&&(!G.base||m.md5!==G.base))throw{conflict:1};
   if(!(m&&m.md5===my))await putFile(content,my);
   G.base=my;G.at=Date.now();G.force=false;if(snapS()===snap)G.dirty=false;await saveLocal()}
@@ -512,7 +521,7 @@ async function reconnect(){if(!G.ready||!conn()||!G.offline||G.busyRc)return;G.b
   else{const m=await getMeta();
    if(m){if(m.md5!==G.base&&!G.dirty){const r=await pullRemote();G.base=m.md5;startApp(r.tabs,false);toast('Загружена свежая версия с Диска')}else G.base=m.md5}
    G.offline=false;G.err=''}}
- catch(e){if(!(e&&e.net)){G.err=e&&e.auth?'auth':errMsg(e);G.offline=false}}
+ catch(e){if(!(e&&e.net&&!e.script)){G.err=e&&e.auth?'auth':errMsg(e);G.offline=false}}
  G.busyRc=false;updBk()}
 async function connect(){
  try{const m=await getMeta();
@@ -523,7 +532,7 @@ async function connect(){
   else if(loc.base&&loc.base===m.md5){tabs=loc.tabs;G.base=m.md5;pf=true}
   else{const pick=await conflictGate(loc,remote);G.base=m.md5;if(pick==='remote')tabs=remote.tabs;else{tabs=loc.tabs;pf=true}}
   startApp(tabs,pf)}
- catch(e){if(G.ready)return;if(e&&e.net){startOffline();return}gateUI(true);gm(errMsg(e))}}
+ catch(e){if(G.ready)return;if(e&&e.net&&!e.script){startOffline();return}gateUI(true);gm(errMsg(e))}}
 /* вход через Яндекс (OAuth, токен в адресе возврата) */
 function loginYa(){const st=genKey();sessionStorage.setItem('plan-knigi-state',st);goto('https://oauth.yandex.ru/authorize?response_type=token&client_id='+enc(G.cid)+'&state='+st)}
 function gateUI(retry){const g=document.getElementById('gate');g.style.display='flex';let note='';
@@ -552,7 +561,7 @@ function gateUI(retry){const g=document.getElementById('gate');g.style.display='
   if(!retry)connect();return}
  if(G.token&&!note)note='Вход истёк. Нажмите «Войти через Яндекс».';
  g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'📖 План книги'),h('p',{},'Данные хранятся на вашем Яндекс Диске. Войдите через Яндекс, чтобы продолжить.'),
-  gb('Войти через Яндекс',loginYa),noConn,msg,CLIENT_ID?'':h('p',{class:'gnote'},h('a',{href:'#',on:{click:e=>{e.preventDefault();localStorage.removeItem(CK);gateUI(true)}}},'Сменить ID приложения'))))}
+  gb('Войти через Яндекс',loginYa),G.token?noConn:'',msg,CLIENT_ID?'':h('p',{class:'gnote'},h('a',{href:'#',on:{click:e=>{e.preventDefault();localStorage.removeItem(CK);gateUI(true)}}},'Сменить ID приложения'))))}
 function initGate(){gateUI()}
 function disconnect(){localStorage.removeItem(TK);G.token=null;G.ready=false;closeModal();updBk();gateUI(true)}
 /* файлы: восстановить */
@@ -563,19 +572,23 @@ function restoreFrom(t){let o;try{o=JSON.parse(t)}catch(e){bsay('Это не ф�
 const fr=h('input',{type:'file',accept:'.json,application/json',hidden:true});document.body.append(fr);
 fr.onchange=()=>{const f=fr.files[0];fr.value='';if(f)f.text().then(restoreFrom).catch(()=>bsay('Не удалось прочитать файл.'))};
 /* проверка подключения: показывает, на каком шаге возникает проблема */
-async function diag(say){const out=[],TF='app:/plan-knigi-test.json',TXT='проверка '+Date.now();
- const step=async(l,f)=>{try{const v=await f();out.push('✓ '+l+(v?' — '+v:''));say(out.join('\n'));return true}catch(e){out.push('✗ '+l+' — '+(e&&e.net?'нет ответа (интернет или запрет браузера)':e&&e.auth?'вход истёк':e&&e.http?'ошибка '+e.http+(e.msg?' '+e.msg:''):(e&&e.msg)||String(e)));say(out.join('\n'));return false}};
+async function diag(say){const out=[],TF='app:/plan-knigi-test.js',TXT='проверка '+Date.now(),body=PREFIX+JSON.stringify({t:TXT})+';';let href=null,direct=false,viaFrame=false;
+ const line=(ok,l,v)=>{out.push((ok?'✓ ':'✗ ')+l+(v?' — '+v:''));say(out.join('\n'))};
+ const bad=e=>e&&e.net?'нет ответа (интернет или запрет браузера)':e&&e.auth?'вход истёк':e&&e.http?'ошибка '+e.http+(e.msg?' '+e.msg:''):(e&&e.msg)||String(e);
+ const step=async(l,f)=>{try{const v=await f();line(true,l,v);return true}catch(e){line(false,l,bad(e));return false}};
  if(!await step('Вход через Яндекс',async()=>{if(!G.token||Date.now()>G.exp)throw{auth:1};return 'токен действует'}))return;
  if(!await step('Доступ к папке приложения',async()=>{const r=await yfetch(API+'resources?path='+enc('app:/')+'&limit=1',{},25000,true);return r.status===404?'папка появится при первом сохранении':'открыта'}))return;
- let up;if(!await step('Запись тестового файла',async()=>{let u;try{u=await(await yfetch(API+'resources/upload?path='+enc(TF)+'&overwrite=true')).json()}catch(e){if(e&&e.http===409){await yfetch(API+'resources?path='+enc('app:/'),{method:'PUT'}).catch(()=>{});u=await(await yfetch(API+'resources/upload?path='+enc(TF)+'&overwrite=true')).json()}else throw e}
-  const r=await tfetch(u.href,{method:'PUT',body:TXT},60000);if(r.status>=300)throw{http:r.status};up=1;return 'отправлено (код '+r.status+')'}))return;
- await step('Чтение тестового файла',async()=>{let ok=false;for(let i=0;i<10&&!ok;i++){const m=await yfetch(API+'resources?path='+enc(TF)+'&fields=size',{},25000,true);if(m.status!==404)ok=true;else await wait(1000)}
-  const d=await(await yfetch(API+'resources/download?path='+enc(TF))).json(),r=await tfetch(d.href,{},30000);if(!r.ok)throw{http:r.status};const t=await r.text();if(t!==TXT)throw{msg:'прочиталось не то, что записано'};return 'совпадает'});
+ if(!await step('Запись тестового файла',async()=>{let u;try{u=await(await yfetch(API+'resources/upload?path='+enc(TF)+'&overwrite=true')).json()}catch(e){if(e&&e.http===409){await yfetch(API+'resources?path='+enc('app:/'),{method:'PUT'}).catch(()=>{});u=await(await yfetch(API+'resources/upload?path='+enc(TF)+'&overwrite=true')).json()}else throw e}
+  const r=await tfetch(u.href,{method:'PUT',body},60000);if(r.status>=300)throw{http:r.status};return 'отправлено (код '+r.status+')'}))return;
+ if(!await step('Ссылка на чтение файла',async()=>{for(let i=0;i<10;i++){const m=await yfetch(API+'resources?path='+enc(TF)+'&fields=size',{},25000,true);if(m.status!==404)break;await wait(1000)}
+  href=(await(await yfetch(API+'resources/download?path='+enc(TF))).json()).href;return 'получена'}))return;
+ direct=await step('Чтение напрямую (Яндекс обычно этого не разрешает)',async()=>{const r=await tfetch(href,{},30000);if(!r.ok)throw{http:r.status};const o=parseData(await r.text());if(!o||o.t!==TXT)throw{msg:'прочиталось не то'};return 'совпадает'});
+ viaFrame=await step('Чтение через запасной способ (изолированное окно)',async()=>{const o=await frameRead(href);if(!o||o.t!==TXT)throw{msg:'прочиталось не то'};return 'совпадает'});
  await step('Удаление тестового файла',async()=>{await yfetch(API+'resources?path='+enc(TF)+'&permanently=true',{method:'DELETE'});return 'удалён'});
- out.push('');out.push(out.some(x=>x.startsWith('✗'))?'Есть ошибки. Покажите этот текст тому, кто помогает с сайтом.':'Всё работает: сайт может хранить данные на вашем Яндекс Диске.');say(out.join('\n'))}
+ out.push('');out.push(direct||viaFrame?'Всё работает: данные можно хранить на вашем Яндекс Диске ('+(direct?'чтение напрямую':'чтение через запасной способ')+').':'Читать файлы с Диска браузер не может ни одним способом. Покажите этот текст тому, кто помогает с сайтом.');say(out.join('\n'))}
 /* окно «Яндекс Диск» */
 document.getElementById('bk').onclick=()=>{if(!G.ready)return;const st=h('p',{id:'bst'},''),info=h('p',{id:'gst'},''),pre=h('pre',{class:'gpre'});bsay=m=>{st.textContent=m};
- const refresh=()=>{info.replaceChildren(conn()?'Файл «plan-knigi-data.json» в папке приложения на вашем Яндекс Диске (Диск → Приложения).':'',h('br'),'Состояние: '+statusText());updBk()};
+ const refresh=()=>{info.replaceChildren(conn()?'Файл «plan-knigi-data.js» в папке приложения на вашем Яндекс Диске (Диск → Приложения).':'',h('br'),'Состояние: '+statusText());updBk()};
  const B=(l,f)=>h('button',{class:'it',on:{click:f}},l),act=f=>async()=>{try{await f()}catch(e){bsay(errMsg(e))}refresh()};
  const box=h('div',{class:'box'},h('h3',{},'Яндекс Диск'),info);
  if(!conn()){box.append(B('🔗 Войти через Яндекс',()=>{closeModal();if(G.cid)loginYa();else gateUI(true)}),B('⬇ Скачать копию (.json)',()=>{dl(backupData(),'копия');bsay('Файл скачан.')}),B('⬆ Восстановить из файла…',()=>fr.click()),st,h('button',{class:'add',on:{click:closeModal}},'Закрыть'));modal.replaceChildren(box);modal.classList.add('on');refresh();return}
