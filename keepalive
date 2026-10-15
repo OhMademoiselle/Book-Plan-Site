@@ -1,0 +1,16 @@
+# Будит бесплатный проект Supabase, чтобы он не «засыпал» после 7 дней без обращений.
+# Положите файл в репозиторий по пути: .github/workflows/keepalive.yml
+name: keepalive
+on:
+  schedule:
+    - cron: "0 6 */3 * *"
+  workflow_dispatch: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Обращение к базе Supabase
+        run: |
+          curl --fail --silent --show-error \
+            "https://jmwgsvzxnfgwbrtwiyse.supabase.co/rest/v1/keepalive?select=id&limit=1" \
+            -H "apikey: sb_publishable_Khj6xR6ZFHk--8SHEwiRwg_njvwsGWp"
