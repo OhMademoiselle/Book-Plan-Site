@@ -434,8 +434,8 @@ q.addEventListener('input',doSearch);q.addEventListener('focus',doSearch);
 q.addEventListener('keydown',e=>{if(e.key==='Escape'){q.value='';doSearch();q.blur()}});
 document.addEventListener('click',e=>{if(!e.target.closest('.sr'))sres.classList.remove('on')});
 /* ===== Supabase: аккаунты сайта и облачная база данных ===== */
-const SUPABASE_URL='',SUPABASE_KEY='';/* публичные адрес и ключ проекта Supabase (publishable / anon). Секретный ключ (secret / service_role) сюда вставлять нельзя */
-const SK='plan-knigi-sb',CKU='plan-knigi-sburl',CKK='plan-knigi-sbkey';
+const SUPABASE_URL='https://jmwgsvzxnfgwbrtwiyse.supabase.co',SUPABASE_KEY='sb_publishable_Khj6xR6ZFHk--8SHEwiRwg_njvwsGWp';/* публичные адрес и ключ проекта Supabase (publishable / anon). Секретный ключ (secret / service_role) сюда вставлять нельзя */
+const SK='plan-knigi-sb';
 const G={url:'',key:'',sess:null,base:null,dirty:false,pushing:false,timer:null,st:null,err:'',at:0,ready:false,force:false,offline:false,busyRc:false};
 let bsay=()=>{},GNOTE='',RECOV=null,refreshP=null;
 const conn=()=>!!(G.sess&&G.sess.refresh),enc=encodeURIComponent,wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -448,25 +448,8 @@ const backupData=()=>JSON.stringify({app:'plan-knigi',v:2,saved:new Date().toISO
 const fmtT=x=>x?new Date(x).toLocaleString('ru-RU'):'—';
 function dl(data,tag){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='plan-knigi-'+tag+'-'+stamp().replace(' ','_')+'.json';document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
 const redirectUri=()=>location.origin+location.pathname.replace(/index\.html$/,'');
-const cfg=()=>{G.url=(SUPABASE_URL||localStorage.getItem(CKU)||'').trim().replace(/\/+$/,'');G.key=(SUPABASE_KEY||localStorage.getItem(CKK)||'').trim()};
+const cfg=()=>{G.url=SUPABASE_URL.trim().replace(/\/+$/,'').replace(/\/(rest|auth)\/v1$/,'');G.key=SUPABASE_KEY.trim()};
 const keyBad=k=>{if(/^sb_secret_/.test(k))return true;try{const p=JSON.parse(atob(k.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));return p.role==='service_role'}catch(e){return false}};
-const SQL=`create table if not exists public.plan_data (
-  user_id uuid primary key default auth.uid() references auth.users(id) on delete cascade,
-  data jsonb not null,
-  version integer not null default 1,
-  updated_at timestamptz not null default now()
-);
-alter table public.plan_data enable row level security;
-grant select, insert, update, delete on public.plan_data to authenticated;
-create policy "own select" on public.plan_data for select to authenticated using ((select auth.uid()) = user_id);
-create policy "own insert" on public.plan_data for insert to authenticated with check ((select auth.uid()) = user_id);
-create policy "own update" on public.plan_data for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
-create policy "own delete" on public.plan_data for delete to authenticated using ((select auth.uid()) = user_id);
-create table if not exists public.keepalive (id int primary key);
-insert into public.keepalive values (1) on conflict do nothing;
-alter table public.keepalive enable row level security;
-grant select on public.keepalive to anon;
-create policy "public read" on public.keepalive for select to anon using (true);`;
 /* локальная копия в браузере (IndexedDB): отдельно для каждого аккаунта */
 const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('plan-knigi',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 const kvGet=async k=>{const d=await idb();return new Promise((res,rej)=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})};
@@ -551,16 +534,7 @@ async function initGate(){cfg();GNOTE='';const hp=new URLSearchParams(location.h
 function gateUI(retry){const g=document.getElementById('gate');g.style.display='flex';let note=GNOTE;GNOTE='';cfg();G.sess=null;
  try{const o=JSON.parse(localStorage.getItem(SK));if(o&&o.refresh)G.sess=o}catch(e){}
  const gb=(l,f,s)=>h('button',{class:'gbtn'+(s?' s':''),on:{click:f}},l),box=(...c)=>g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'📖 План книги'),...c));
- if(!G.url||!G.key){
-  const iu=h('input',{placeholder:'Project URL, например https://abcdxyz.supabase.co'}),ik=h('input',{placeholder:'Publishable (anon) key'}),ta=h('textarea',{readOnly:true,value:SQL});
-  box(h('p',{},'Сайт ещё не настроен. Это один раз делает владелец сайта: обычные посетители потом увидят только вход и регистрацию. Данные каждого человека хранятся отдельно, под его аккаунтом.'),
-   h('ol',{},h('li',{},'В Supabase откройте SQL Editor → New query, вставьте код ниже и нажмите Run.'),
-    h('li',{},'Authentication → Sign In / Providers → Email: выключите «Confirm email», иначе каждому придётся подтверждать почту письмом.'),
-    h('li',{},'Authentication → URL Configuration: в «Site URL» укажите '+redirectUri()+' и добавьте этот же адрес в «Redirect URLs».'),
-    h('li',{},'Project Settings → API (или кнопка Connect): скопируйте Project URL и Publishable (anon) key. Секретный ключ (secret, service_role) вставлять нельзя.'),
-    h('li',{},'Впишите их в файл index.html в строки SUPABASE_URL и SUPABASE_KEY (между кавычками), чтобы этот экран больше никому не показывался. Для проверки на этом устройстве можно ввести их ниже.')),
-   ta,gb('Скопировать SQL',async()=>{try{await navigator.clipboard.writeText(SQL);gm('SQL скопирован.')}catch(e){ta.select();gm('Выделите код и скопируйте вручную.')}},1),iu,ik,
-   gb('Сохранить и продолжить',()=>{const u=iu.value.trim(),k=ik.value.trim();if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(u)){gm('Адрес должен выглядеть так: https://…supabase.co');return}if(!k||keyBad(k)){gm(k?'Это секретный ключ, его нельзя использовать на сайте. Возьмите Publishable (anon).':'Вставьте ключ.');return}localStorage.setItem(CKU,u);localStorage.setItem(CKK,k);gateUI(true)}),h('p',{id:'gmsg'},note));return}
+ if(!G.url||!G.key){box(h('p',{},'Сайт ещё не настроен владельцем. Загляните сюда позже.'));return}
  if(keyBad(G.key)){box(h('p',{},'В настройках сайта указан секретный ключ Supabase. Его нельзя использовать на сайте: он даёт полный доступ к базе. Замените его на Publishable (anon) key и создайте новый секретный ключ в Supabase.'));return}
  if(RECOV){const pw=h('input',{type:'password',placeholder:'Новый пароль (не короче 6 символов)',autocomplete:'new-password'});
   box(h('p',{},'Придумайте новый пароль.'),pw,gb('Сохранить пароль',async()=>{try{await aReq('user',{password:pw.value},{method:'PUT',tok:RECOV.token});RECOV=null;GNOTE='Пароль изменён. Войдите с новым паролем.';gateUI()}catch(e){gm(errMsg(e))}}),h('p',{id:'gmsg'},''));return}
