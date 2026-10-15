@@ -433,74 +433,80 @@ function doSearch(){const v=q.value.trim().toLowerCase();sres.replaceChildren();
 q.addEventListener('input',doSearch);q.addEventListener('focus',doSearch);
 q.addEventListener('keydown',e=>{if(e.key==='Escape'){q.value='';doSearch();q.blur()}});
 document.addEventListener('click',e=>{if(!e.target.closest('.sr'))sres.classList.remove('on')});
-/* ===== Яндекс Диск: вход через Яндекс и синхронизация ===== */
-const CLIENT_ID='32db2310c73d4b0b9af978176aae6e66';/* ID приложения Яндекса можно вписать сюда: тогда вводить его на каждом устройстве не придётся */
-const API='https://cloud-api.yandex.net/v1/disk/',FILEP='app:/plan-knigi-data.js',TK='plan-knigi-ya',CK='plan-knigi-yacid';
-const G={cid:'',token:null,exp:0,base:null,dirty:false,pushing:false,timer:null,st:null,err:'',at:0,ready:false,force:false,offline:false,busyRc:false};
-let bsay=()=>{};
-const conn=()=>!!G.token,enc=encodeURIComponent,wait=ms=>new Promise(r=>setTimeout(r,ms));
+/* ===== Supabase: аккаунты сайта и облачная база данных ===== */
+const SUPABASE_URL='',SUPABASE_KEY='';/* публичные адрес и ключ проекта Supabase (publishable / anon). Секретный ключ (secret / service_role) сюда вставлять нельзя */
+const SK='plan-knigi-sb',CKU='plan-knigi-sburl',CKK='plan-knigi-sbkey';
+const G={url:'',key:'',sess:null,base:null,dirty:false,pushing:false,timer:null,st:null,err:'',at:0,ready:false,force:false,offline:false,busyRc:false};
+let bsay=()=>{},GNOTE='',RECOV=null,refreshP=null;
+const conn=()=>!!(G.sess&&G.sess.refresh),enc=encodeURIComponent,wait=ms=>new Promise(r=>setTimeout(r,ms));
+const lsk=()=>'state:'+((G.sess&&G.sess.uid)||'anon');
+const defaultTabs=()=>[{name:'Сюжет',blocks:[{id:uid(),t:'h',lv:1,x:'Название книги'},{id:uid(),t:'p',x:'Коротко: о чём эта история?'},{id:uid(),t:'warn',y:'w',x:'Не забыть: связать завязку с финалом.'}]},
+ {name:'Герои',blocks:[{id:uid(),t:'cards',cards:[{a:'Главный герой',b:'Цель, страх, характер…'},{a:'Антагонист',b:'Что им движет?'}]}]}];
 function goto(u){location.href=u}
 const stamp=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+'-'+p(d.getMinutes())};
 const backupData=()=>JSON.stringify({app:'plan-knigi',v:2,saved:new Date().toISOString(),tabs:S.tabs});
 const fmtT=x=>x?new Date(x).toLocaleString('ru-RU'):'—';
 function dl(data,tag){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='plan-knigi-'+tag+'-'+stamp().replace(' ','_')+'.json';document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
-const genKey=()=>{const a=new Uint8Array(18);(window.crypto&&crypto.getRandomValues)?crypto.getRandomValues(a):a.forEach((_,i)=>a[i]=Math.random()*256);return Array.from(a,b=>b.toString(36).padStart(2,'0')).join('')};
-/* MD5 — чтобы понимать, что файл на Диске изменил кто-то другой */
-function md5(str){const msg=new TextEncoder().encode(str),n=msg.length,total=(((n+8)>>>6)+1)<<6,buf=new Uint8Array(total);buf.set(msg);buf[n]=0x80;
- const dv=new DataView(buf.buffer);dv.setUint32(total-8,(n*8)>>>0,true);dv.setUint32(total-4,Math.floor(n*8/4294967296),true);
- let a0=0x67452301,b0=0xefcdab89,c0=0x98badcfe,d0=0x10325476;const K=[],R=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21],M=new Uint32Array(16);
- for(let i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296)>>>0;
- for(let off=0;off<total;off+=64){for(let i=0;i<16;i++)M[i]=dv.getUint32(off+i*4,true);let A=a0,B=b0,C=c0,D=d0;
-  for(let i=0;i<64;i++){let F,g;
-   if(i<16){F=(B&C)|(~B&D);g=i}else if(i<32){F=(D&B)|(~D&C);g=(5*i+1)%16}else if(i<48){F=B^C^D;g=(3*i+5)%16}else{F=C^(B|~D);g=(7*i)%16}
-   F=(F+A+K[i]+M[g])>>>0;A=D;D=C;C=B;const sh=R[(i>>4)*4+(i%4)];B=(B+((F<<sh)|(F>>>(32-sh))))>>>0}
-  a0=(a0+A)>>>0;b0=(b0+B)>>>0;c0=(c0+C)>>>0;d0=(d0+D)>>>0}
- const o=new DataView(new ArrayBuffer(16));o.setUint32(0,a0,true);o.setUint32(4,b0,true);o.setUint32(8,c0,true);o.setUint32(12,d0,true);
- return[...new Uint8Array(o.buffer)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-/* локальная копия в браузере (IndexedDB) — страховка, если нет связи */
+const redirectUri=()=>location.origin+location.pathname.replace(/index\.html$/,'');
+const cfg=()=>{G.url=(SUPABASE_URL||localStorage.getItem(CKU)||'').trim().replace(/\/+$/,'');G.key=(SUPABASE_KEY||localStorage.getItem(CKK)||'').trim()};
+const keyBad=k=>{if(/^sb_secret_/.test(k))return true;try{const p=JSON.parse(atob(k.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));return p.role==='service_role'}catch(e){return false}};
+const SQL=`create table if not exists public.plan_data (
+  user_id uuid primary key default auth.uid() references auth.users(id) on delete cascade,
+  data jsonb not null,
+  version integer not null default 1,
+  updated_at timestamptz not null default now()
+);
+alter table public.plan_data enable row level security;
+grant select, insert, update, delete on public.plan_data to authenticated;
+create policy "own select" on public.plan_data for select to authenticated using ((select auth.uid()) = user_id);
+create policy "own insert" on public.plan_data for insert to authenticated with check ((select auth.uid()) = user_id);
+create policy "own update" on public.plan_data for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy "own delete" on public.plan_data for delete to authenticated using ((select auth.uid()) = user_id);
+create table if not exists public.keepalive (id int primary key);
+insert into public.keepalive values (1) on conflict do nothing;
+alter table public.keepalive enable row level security;
+grant select on public.keepalive to anon;
+create policy "public read" on public.keepalive for select to anon using (true);`;
+/* локальная копия в браузере (IndexedDB): отдельно для каждого аккаунта */
 const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('plan-knigi',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 const kvGet=async k=>{const d=await idb();return new Promise((res,rej)=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})};
 const kvSet=async(k,v)=>{const d=await idb();return new Promise((res,rej)=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})};
-const saveLocal=()=>kvSet('state',{tabs:S.tabs,dirty:G.dirty,base:G.base,at:Date.now()}).catch(()=>toast('Не удалось сохранить копию в браузере'));
-/* связь с Яндекс Диском */
+const saveLocal=()=>kvSet(lsk(),{tabs:S.tabs,dirty:G.dirty,base:G.base,at:Date.now()}).catch(()=>toast('Не удалось сохранить копию в браузере'));
+/* связь с Supabase */
 async function tfetch(url,opt={},ms=25000){const ac=new AbortController(),to=setTimeout(()=>ac.abort(),ms);try{return await fetch(url,{...opt,signal:ac.signal})}catch(e){throw{net:1}}finally{clearTimeout(to)}}
-async function yfetch(url,opt={},ms,ok404){if(!G.token||Date.now()>G.exp)throw{auth:1};
- const r=await tfetch(url,{...opt,headers:{Authorization:'OAuth '+G.token,Accept:'application/json',...(opt.headers||{})}},ms);
+async function aReq(path,body,o={}){const r=await tfetch(G.url+'/auth/v1/'+path,{method:o.method||'POST',headers:{apikey:G.key,'Content-Type':'application/json',...(o.tok?{Authorization:'Bearer '+o.tok}:{})},body:body?JSON.stringify(body):undefined},25000);
+ let j=null;try{j=await r.json()}catch(e){}
+ if(!r.ok)throw{http:r.status,code:(j&&(j.error_code||j.code))||'',msg:(j&&(j.msg||j.error_description||j.message))||''};return j}
+function setSess(j,prev){G.sess={access:j.access_token,refresh:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1000-60000,uid:(j.user&&j.user.id)||(prev&&prev.uid),email:(j.user&&j.user.email)||(prev&&prev.email)||''};localStorage.setItem(SK,JSON.stringify(G.sess))}
+async function ensureTok(){if(!conn())throw{auth:1};if(Date.now()<G.sess.exp)return;
+ if(!refreshP)refreshP=(async()=>{try{const j=await aReq('token?grant_type=refresh_token',{refresh_token:G.sess.refresh});setSess(j,G.sess)}catch(e){if(e&&e.http&&e.http>=400&&e.http<500&&e.http!==429)throw{auth:1};throw e}})().finally(()=>{refreshP=null});
+ await refreshP}
+async function rest(path,opt={}){await ensureTok();const r=await tfetch(G.url+'/rest/v1/'+path,{...opt,headers:{apikey:G.key,Authorization:'Bearer '+G.sess.access,'Content-Type':'application/json',...(opt.headers||{})}},30000);
  if(r.status===401)throw{auth:1};
- if(!r.ok&&!(ok404&&r.status===404)){let d='';try{d=(await r.json()).description||''}catch(e){}throw{http:r.status,msg:d}}return r}
-const errMsg=e=>e&&e.script?'Яндекс Диск не отдал файл браузеру ни обычным, ни запасным способом, хотя интернет есть. Данные на Диске целы. Нажмите «Работать офлайн» и откройте ☁ → «Проверить подключение».':e&&e.net?'Нет связи с Яндекс Диском. Если интернет есть, а ошибка не пропадает, нажмите ☁ → «Проверить подключение».':e&&e.auth?'Нужно войти снова через Яндекс (правки пока сохранены в этом браузере).':e&&e.http===403?'Яндекс не разрешил доступ. Проверьте в настройках приложения, что включён доступ к папке приложения на Диске.':e&&e.http===507?'На Яндекс Диске не хватает места.':e&&e.http===429?'Яндекс просит подождать (слишком много запросов). Повторю позже.':e&&e.http?'Яндекс Диск вернул ошибку '+e.http+(e.msg?': '+e.msg:'')+'.':(e&&e.msg)||'Что-то пошло не так. Повторите позже.';
-async function getMeta(){const r=await yfetch(API+'resources?path='+enc(FILEP)+'&fields=md5,modified,size',{},25000,true);return r.status===404?null:r.json()}
-const PREFIX='window.__planData=';
-const parseData=t=>{try{const m=String(t).match(/^window\.__planData=([\s\S]*);\s*$/);return m?JSON.parse(m[1]):null}catch(e){return null}};
-/* Яндекс не разрешает браузеру читать файлы с Диска обычным запросом, поэтому запасной способ: файл подключается как скрипт внутри изолированного окна (sandbox), которое возвращает сайту только данные */
-function frameRead(href){return new Promise((res,rej)=>{const f=document.createElement('iframe');f.setAttribute('sandbox','allow-scripts');f.style.display='none';
- const code='<script>var s=document.createElement("script");s.onload=function(){parent.postMessage({plan:1,ok:1,d:window.__planData},"*")};s.onerror=function(){parent.postMessage({plan:1,err:1},"*")};s.src='+JSON.stringify(href).replace(/</g,'\\u003c')+';document.head.appendChild(s)<\/script>';
- let done=false;const fin=(fn,v)=>{if(done)return;done=true;clearTimeout(to);window.removeEventListener('message',on);f.remove();fn(v)};
- const on=ev=>{if(ev.source!==f.contentWindow||!ev.data||!ev.data.plan)return;ev.data.ok?fin(res,ev.data.d?JSON.parse(JSON.stringify(ev.data.d)):null):fin(rej,{net:1,script:1})};
- const to=setTimeout(()=>fin(rej,{net:1,script:1}),25000);window.addEventListener('message',on);f.srcdoc=code;document.body.append(f)})}
-async function pullRemote(){const d=await(await yfetch(API+'resources/download?path='+enc(FILEP))).json();let o=null;
- try{const r=await tfetch(d.href,{},30000);if(r.ok)o=parseData(await r.text())}catch(e){}
- if(!o)o=await frameRead(d.href);
- if(!o||!Array.isArray(o.tabs)||!o.tabs.length)throw{msg:'Файл «plan-knigi-data.js» на Диске пуст или повреждён. Я ничего не перезаписываю: откройте его на Яндекс Диске и посмотрите, что внутри.'};return o}
-async function putFile(content,my){let u;
- try{u=await(await yfetch(API+'resources/upload?path='+enc(FILEP)+'&overwrite=true')).json()}
- catch(e){if(e&&e.http===409){await yfetch(API+'resources?path='+enc('app:/'),{method:'PUT'}).catch(()=>{});u=await(await yfetch(API+'resources/upload?path='+enc(FILEP)+'&overwrite=true')).json()}else throw e}
- const r=await tfetch(u.href,{method:'PUT',body:content},60000);if(r.status>=300)throw{http:r.status};
- for(let i=0;i<20;i++){const m=await getMeta().catch(()=>null);if(m&&m.md5===my)return;await wait(1000)}}
+ if(!r.ok){let j=null;try{j=await r.json()}catch(e){}throw{http:r.status,code:(j&&j.code)||'',msg:(j&&(j.message||j.hint))||''}}return r}
+const errMsg=e=>e&&e.net?'Нет связи с облаком. Если интернет есть, а ошибка не пропадает, нажмите ☁ → «Проверить подключение».':e&&e.auth?'Нужно войти снова (правки пока сохранены в этом браузере).':e&&(e.code==='42P01'||e.code==='PGRST205'||e.http===404)?'В базе нет таблицы plan_data: владельцу сайта нужно выполнить SQL-настройку.':e&&(e.code==='42501'||e.http===403)?'У аккаунта нет прав на таблицу. Владельцу сайта нужно проверить SQL-настройку (политики доступа).':e&&e.http===413?'Данных слишком много для одной отправки. Уберите часть изображений.':e&&e.http===429?'Слишком много запросов. Повторю позже.':e&&(e.code==='invalid_credentials'||/Invalid login credentials/i.test(e.msg||''))?'Неверная почта или пароль.':e&&(e.code==='email_not_confirmed'||/not confirmed/i.test(e.msg||''))?'Почта ещё не подтверждена: откройте письмо от сайта и перейдите по ссылке.':e&&(e.code==='user_already_exists'||/already registered/i.test(e.msg||''))?'Такая почта уже зарегистрирована. Нажмите «Войти».':e&&(e.code==='weak_password'||/at least/i.test(e.msg||''))?'Пароль слишком простой: нужно не меньше 6 символов.':e&&(e.code==='over_email_send_rate_limit'||e.code==='over_request_rate_limit')?'Слишком много писем или попыток. Подождите немного и повторите.':e&&e.code==='signup_disabled'?'Регистрация новых пользователей отключена владельцем сайта.':e&&e.http?'Облако вернуло ошибку '+e.http+(e.msg?': '+e.msg:'')+'.':(e&&e.msg)||'Что-то пошло не так. Повторите позже.';
+async function pull(){const a=await(await rest('plan_data?select=data,version&user_id=eq.'+G.sess.uid)).json();return a&&a[0]?a[0]:null}
+const validRow=r=>r&&r.data&&Array.isArray(r.data.tabs)&&r.data.tabs.length;
+async function pullData(){const row=await pull();if(row&&!validRow(row))throw{msg:'Данные в облаке пусты или повреждены. Я ничего не перезаписываю: попросите владельца сайта посмотреть таблицу plan_data.'};return row}
+async function writeRow(obj,force){const uid=G.sess.uid,P={Prefer:'return=representation'};let rows;
+ if(force){const cur=await pull();G.base=cur?cur.version:null}
+ if(G.base==null){try{rows=await(await rest('plan_data',{method:'POST',headers:P,body:JSON.stringify({user_id:uid,data:obj,version:1})})).json()}catch(e){if(e&&e.http===409)throw{conflict:1};throw e}}
+ else{rows=await(await rest('plan_data?user_id=eq.'+uid+'&version=eq.'+G.base,{method:'PATCH',headers:P,body:JSON.stringify({data:obj,version:G.base+1,updated_at:new Date().toISOString()})})).json();if(!rows.length)throw{conflict:1}}
+ return rows[0].version}
 /* сохранение */
 function dataChanged(){if(!G.ready)return;G.dirty=true;saveLocal();updBk();schedPush()}
-function schedPush(){clearTimeout(G.timer);G.timer=setTimeout(pushNow,3000)}
+function schedPush(){clearTimeout(G.timer);G.timer=setTimeout(pushNow,5000)}
 async function pushNow(){clearTimeout(G.timer);if(!G.ready||!conn()||!G.dirty||G.pushing)return;G.pushing=true;G.err='';updBk();const snap=snapS(),force=G.force;
- try{const saved=new Date().toISOString(),content=PREFIX+JSON.stringify({app:'plan-knigi',v:2,saved,tabs:S.tabs})+';',my=md5(content),m=await getMeta();G.offline=false;
-  if(!force&&m&&m.md5!==my&&(!G.base||m.md5!==G.base))throw{conflict:1};
-  if(!(m&&m.md5===my))await putFile(content,my);
-  G.base=my;G.at=Date.now();G.force=false;if(snapS()===snap)G.dirty=false;await saveLocal()}
- catch(e){if(e&&e.conflict)G.err='conflict';else if(e&&e.auth)G.err='auth';else if(e&&e.net){G.offline=true;G.timer=setTimeout(pushNow,30000)}else G.err=errMsg(e)}
+ try{const obj={app:'plan-knigi',v:2,saved:new Date().toISOString(),tabs:S.tabs};let ver;
+  try{ver=await writeRow(obj,force)}
+  catch(e){if(e&&e.conflict){const cur=await pull();if(!cur){G.base=null;ver=await writeRow(obj,false)}else if(cur.data&&JSON.stringify(cur.data.tabs)===JSON.stringify(S.tabs))ver=cur.version;else throw{conflict:1}}else throw e}
+  G.offline=false;G.base=ver;G.at=Date.now();G.force=false;if(snapS()===snap)G.dirty=false;await saveLocal()}
+ catch(e){if(e&&e.conflict){G.offline=false;G.err='conflict'}else if(e&&e.auth)G.err='auth';else if(e&&e.net){G.offline=true;G.timer=setTimeout(pushNow,30000)}else G.err=errMsg(e)}
  G.pushing=false;updBk();if(G.dirty&&!G.err&&!G.offline)schedPush()}
-function statusText(){return !conn()?'Яндекс Диск не подключён: данные хранятся только на этом устройстве':G.err==='auth'?'нужно войти снова через Яндекс (правки пока сохранены в этом браузере)':G.offline?'нет связи с Яндекс Диском — правки сохраняются на этом устройстве и отправятся на Диск, когда связь появится':G.pushing?'сохраняю…':G.err==='conflict'?'на Диске другая версия файла — выберите, какую оставить':G.err?G.err:G.dirty?'есть несохранённые правки, отправлю через несколько секунд':'всё сохранено'+(G.at?' ('+fmtT(G.at)+')':'')}
+function statusText(){return !conn()?'вы не вошли в аккаунт: данные хранятся только на этом устройстве':G.err==='auth'?'нужно войти снова (правки пока сохранены в этом браузере)':G.offline?'нет связи с облаком — правки сохраняются на этом устройстве и отправятся, когда связь появится':G.pushing?'сохраняю…':G.err==='conflict'?'в облаке другая версия данных — выберите, какую оставить':G.err?G.err:G.dirty?'есть несохранённые правки, отправлю через несколько секунд':'всё сохранено'+(G.at?' ('+fmtT(G.at)+')':'')}
 function updBk(){const b=document.getElementById('bk');if(!b)return;
- b.textContent='☁'+(!G.ready?' Яндекс Диск':!conn()?' Не подключено':G.err==='auth'?' ⚠ Войдите снова':G.offline?' Офлайн':G.pushing?' Сохраняю…':G.err==='conflict'?' ⚠ Конфликт':G.err?' ⚠ Ошибка':G.dirty?' Не сохранено':' Сохранено ✓');
- b.title=G.ready?statusText():'Яндекс Диск'}
+ b.textContent='☁'+(!G.ready?' Аккаунт':!conn()?' Не вошли':G.err==='auth'?' ⚠ Войдите снова':G.offline?' Офлайн':G.pushing?' Сохраняю…':G.err==='conflict'?' ⚠ Конфликт':G.err?' ⚠ Ошибка':G.dirty?' Не сохранено':' Сохранено ✓');
+ b.title=G.ready?(G.sess&&G.sess.email?G.sess.email+': ':'')+statusText():'Аккаунт'}
 window.addEventListener('beforeunload',e=>{if(G.ready&&conn()&&G.dirty){e.preventDefault();e.returnValue=''}});
 /* запуск после входа */
 function startApp(tabs,pushFlag){const fix=bl=>bl.forEach(b=>{b.id=b.id||uid();if(b.items)fix(b.items)});tabs.forEach(t=>fix(t.blocks));
@@ -509,61 +515,71 @@ function startApp(tabs,pushFlag){const fix=bl=>bl.forEach(b=>{b.id=b.id||uid();i
  if(pushFlag)pushNow();if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}
 const gm=t=>{const m=document.getElementById('gmsg');if(m)m.textContent=t};
 function conflictGate(loc,remote){return new Promise(res=>{const gb=(l,f,s)=>h('button',{class:'gbtn'+(s?' s':''),on:{click:f}},l);
- document.getElementById('gate').replaceChildren(h('div',{class:'gbox'},h('h2',{},'Найдены две версии'),h('p',{},'На Яндекс Диске: от '+fmtT(remote.saved)+'. На этом устройстве есть несохранённые правки от '+fmtT(loc.at)+'. Какую оставить?'),
-  gb('⬇ Сначала скачать версию с устройства (.json)',()=>dl(JSON.stringify({app:'plan-knigi',v:2,saved:new Date(loc.at).toISOString(),tabs:loc.tabs}),'устройство'),1),gb('Оставить версию с Диска',()=>res('remote')),gb('Оставить версию с устройства (Диск обновится)',()=>res('local'))))})}
-async function startOffline(){const loc=await kvGet('state').catch(()=>null);
- G.base=(loc&&loc.base)||null;G.offline=conn();
- startApp(loc&&loc.tabs?loc.tabs:S.tabs,!!(loc&&loc.dirty));
- if(conn()){G.offline=true;updBk();toast('Нет связи с Яндекс Диском — работаю офлайн. Правки сохранятся на Диск, когда связь появится.')}
- else{updBk();toast('Яндекс Диск не подключён — данные хранятся только на этом устройстве.')}}
+ document.getElementById('gate').replaceChildren(h('div',{class:'gbox'},h('h2',{},'Найдены две версии'),h('p',{},'В облаке: от '+fmtT(remote.saved)+'. На этом устройстве есть несохранённые правки от '+fmtT(loc.at)+'. Какую оставить?'),
+  gb('⬇ Сначала скачать версию с устройства (.json)',()=>dl(JSON.stringify({app:'plan-knigi',v:2,saved:new Date(loc.at).toISOString(),tabs:loc.tabs}),'устройство'),1),gb('Оставить версию из облака',()=>res('remote')),gb('Оставить версию с устройства (облако обновится)',()=>res('local'))))})}
+async function startOffline(){const loc=await kvGet(lsk()).catch(()=>null);
+ G.base=loc&&loc.base!=null?loc.base:null;G.offline=conn();
+ startApp(loc&&loc.tabs?loc.tabs:defaultTabs(),!!(loc&&loc.dirty));
+ if(conn()){G.offline=true;updBk();toast('Нет связи с облаком — работаю офлайн. Правки сохранятся, когда связь появится.')}
+ else{updBk()}}
 async function reconnect(){if(!G.ready||!conn()||!G.offline||G.busyRc)return;G.busyRc=true;
  try{if(G.dirty){await pushNow()}
-  else{const m=await getMeta();
-   if(m){if(m.md5!==G.base&&!G.dirty){const r=await pullRemote();G.base=m.md5;startApp(r.tabs,false);toast('Загружена свежая версия с Диска')}else G.base=m.md5}
+  else{const row=await pullData();
+   if(row){if(row.version!==G.base&&!G.dirty){G.base=row.version;startApp(row.data.tabs,false);toast('Загружена свежая версия из облака')}else G.base=row.version}
    G.offline=false;G.err=''}}
- catch(e){if(!(e&&e.net&&!e.script)){G.err=e&&e.auth?'auth':errMsg(e);G.offline=false}}
+ catch(e){if(!(e&&e.net)){G.err=e&&e.auth?'auth':errMsg(e);G.offline=false}}
  G.busyRc=false;updBk()}
 async function connect(){
- try{const m=await getMeta();
+ try{const row=await pullData();
   if(G.ready){document.getElementById('gate').style.display='none';G.offline=true;await reconnect();return}
-  const remote=m?await pullRemote():null,loc=await kvGet('state').catch(()=>null);let tabs,pf=false;
-  if(!remote){G.base=null;tabs=loc&&loc.tabs?loc.tabs:S.tabs;pf=true}
-  else if(!loc||!loc.dirty||!loc.tabs){tabs=remote.tabs;G.base=m.md5}
-  else if(loc.base&&loc.base===m.md5){tabs=loc.tabs;G.base=m.md5;pf=true}
-  else{const pick=await conflictGate(loc,remote);G.base=m.md5;if(pick==='remote')tabs=remote.tabs;else{tabs=loc.tabs;pf=true}}
+  const loc=await kvGet(lsk()).catch(()=>null);let tabs,pf=false;
+  if(!row){G.base=null;tabs=loc&&loc.tabs?loc.tabs:defaultTabs();pf=true}
+  else if(!loc||!loc.dirty||!loc.tabs){tabs=row.data.tabs;G.base=row.version}
+  else if(loc.base!=null&&loc.base===row.version){tabs=loc.tabs;G.base=row.version;pf=true}
+  else{const pick=await conflictGate(loc,row.data);G.base=row.version;if(pick==='remote')tabs=row.data.tabs;else{tabs=loc.tabs;pf=true}}
   startApp(tabs,pf)}
- catch(e){if(G.ready)return;if(e&&e.net&&!e.script){startOffline();return}gateUI(true);gm(errMsg(e))}}
-/* вход через Яндекс (OAuth, токен в адресе возврата) */
-function loginYa(){const st=genKey();sessionStorage.setItem('plan-knigi-state',st);goto('https://oauth.yandex.ru/authorize?response_type=token&client_id='+enc(G.cid)+'&state='+st)}
-function gateUI(retry){const g=document.getElementById('gate');g.style.display='flex';let note='';
- const hp=new URLSearchParams(location.hash.replace(/^#/,''));
- if(hp.get('access_token')){const okS=hp.get('state')&&hp.get('state')===sessionStorage.getItem('plan-knigi-state');
-  if(okS){localStorage.setItem(TK,JSON.stringify({token:hp.get('access_token'),exp:Date.now()+(parseInt(hp.get('expires_in'))||31536000)*1000-60000}));sessionStorage.removeItem('plan-knigi-state')}
-  else note='Не удалось проверить ответ Яндекса. Войдите ещё раз.';
-  history.replaceState(null,'',location.pathname+location.search)}
- else if(hp.get('error')){note=hp.get('error')==='access_denied'?'Вы не разрешили доступ. Нажмите «Войти через Яндекс» и разрешите доступ к папке приложения на Диске.':'Яндекс вернул ошибку: '+(hp.get('error_description')||hp.get('error'));history.replaceState(null,'',location.pathname+location.search)}
- G.cid=(CLIENT_ID||localStorage.getItem(CK)||'').trim();G.token=null;
- try{const o=JSON.parse(localStorage.getItem(TK));if(o&&o.token){G.token=o.token;G.exp=o.exp}}catch(e){}
- const msg=h('p',{id:'gmsg'},note),gb=(l,f,s)=>h('button',{class:'gbtn'+(s?' s':''),on:{click:f}},l);
- const noConn=gb('Продолжить без подключения (данные только на этом устройстве)',()=>{G.token=null;if(G.ready){g.style.display='none'}else startOffline()},1);
- if(!G.cid){const inp=h('input',{placeholder:'ID приложения, например 0123456789abcdef0123456789abcdef'}),cb=location.origin+location.pathname.replace(/index\.html$/,'');
-  g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'📖 План книги'),
-   h('p',{},'Сайт ещё не настроен. Это один раз делает владелец сайта: обычные посетители потом увидят только кнопку «Войти через Яндекс», а данные каждого хранятся на его собственном Яндекс Диске. Регистрация приложения бесплатна, банковская карта не нужна:'),
-   h('ol',{},h('li',{},'Откройте oauth.yandex.ru и нажмите «Создать приложение» (нужен аккаунт Яндекса).'),
-    h('li',{},'Название: любое, например «План книги». Платформы: «Веб-сервисы». Callback URI: '+cb),
-    h('li',{},'Доступ к данным: Яндекс Диск REST API → «Доступ к папке приложения на Диске» (cloud_api:disk.app_folder).'),
-    h('li',{},'Создайте приложение и скопируйте «ID приложения» (Client ID).'),h('li',{},'Чтобы этот экран больше никому не показывался, впишите ID в файл сайта index.html: найдите строку const CLIENT_ID=\'\'; и вставьте ID между кавычками. Для проверки на этом устройстве ID можно ввести ниже.')),
-   inp,gb('Сохранить и продолжить',()=>{const v=inp.value.trim();if(!/^[0-9a-f]{20,}$/i.test(v)){gm('ID выглядит иначе: это длинный набор латинских букв и цифр');return}localStorage.setItem(CK,v);gateUI(true)}),noConn,msg,
-   h('p',{class:'gnote'},'Файл с данными лежит на Яндекс Диске в папке «Приложения». Пароль от Яндекса сайт не видит и не хранит.')));return}
- if(G.token&&Date.now()<G.exp){
-  g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'📖 План книги'),h('p',{id:'gmsg'},note||'Подключаюсь к Яндекс Диску…'),
-   gb('Повторить',()=>{gm('Подключаюсь…');connect()}),gb('Войти заново через Яндекс',loginYa,1),gb('Работать офлайн (данные сохранятся на устройстве)',()=>startOffline(),1)));
-  if(!retry)connect();return}
- if(G.token&&!note)note='Вход истёк. Нажмите «Войти через Яндекс».';
- g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'📖 План книги'),h('p',{},'Данные хранятся на вашем Яндекс Диске. Войдите через Яндекс, чтобы продолжить.'),
-  gb('Войти через Яндекс',loginYa),G.token?noConn:'',msg,CLIENT_ID?'':h('p',{class:'gnote'},h('a',{href:'#',on:{click:e=>{e.preventDefault();localStorage.removeItem(CK);gateUI(true)}}},'Сменить ID приложения'))))}
-function initGate(){gateUI()}
-function disconnect(){localStorage.removeItem(TK);G.token=null;G.ready=false;closeModal();updBk();gateUI(true)}
+ catch(e){if(G.ready)return;if(e&&e.net){startOffline();return}
+  if(e&&e.auth){localStorage.removeItem(SK);G.sess=null;GNOTE='Вход истёк. Войдите снова.';gateUI();return}
+  gateUI(true);gm(errMsg(e))}}
+/* вход и регистрация */
+async function initGate(){cfg();GNOTE='';const hp=new URLSearchParams(location.hash.replace(/^#/,''));
+ if(G.url&&G.key&&hp.get('access_token')&&hp.get('refresh_token')){const tok=hp.get('access_token'),type=hp.get('type');history.replaceState(null,'',location.pathname+location.search);
+  if(type==='recovery')RECOV={token:tok};
+  else{try{const u=await aReq('user',null,{method:'GET',tok});setSess({access_token:tok,refresh_token:hp.get('refresh_token'),expires_in:parseInt(hp.get('expires_in'))||3600,user:u})}catch(e){GNOTE='Не удалось войти по ссылке из письма: '+errMsg(e)}}}
+ else if(hp.get('error')){GNOTE='Ссылка из письма недействительна или устарела: '+(hp.get('error_description')||hp.get('error')).replace(/\+/g,' ');history.replaceState(null,'',location.pathname+location.search)}
+ gateUI()}
+function gateUI(retry){const g=document.getElementById('gate');g.style.display='flex';let note=GNOTE;GNOTE='';cfg();G.sess=null;
+ try{const o=JSON.parse(localStorage.getItem(SK));if(o&&o.refresh)G.sess=o}catch(e){}
+ const gb=(l,f,s)=>h('button',{class:'gbtn'+(s?' s':''),on:{click:f}},l),box=(...c)=>g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'📖 План книги'),...c));
+ if(!G.url||!G.key){
+  const iu=h('input',{placeholder:'Project URL, например https://abcdxyz.supabase.co'}),ik=h('input',{placeholder:'Publishable (anon) key'}),ta=h('textarea',{readOnly:true,value:SQL});
+  box(h('p',{},'Сайт ещё не настроен. Это один раз делает владелец сайта: обычные посетители потом увидят только вход и регистрацию. Данные каждого человека хранятся отдельно, под его аккаунтом.'),
+   h('ol',{},h('li',{},'В Supabase откройте SQL Editor → New query, вставьте код ниже и нажмите Run.'),
+    h('li',{},'Authentication → Sign In / Providers → Email: выключите «Confirm email», иначе каждому придётся подтверждать почту письмом.'),
+    h('li',{},'Authentication → URL Configuration: в «Site URL» укажите '+redirectUri()+' и добавьте этот же адрес в «Redirect URLs».'),
+    h('li',{},'Project Settings → API (или кнопка Connect): скопируйте Project URL и Publishable (anon) key. Секретный ключ (secret, service_role) вставлять нельзя.'),
+    h('li',{},'Впишите их в файл index.html в строки SUPABASE_URL и SUPABASE_KEY (между кавычками), чтобы этот экран больше никому не показывался. Для проверки на этом устройстве можно ввести их ниже.')),
+   ta,gb('Скопировать SQL',async()=>{try{await navigator.clipboard.writeText(SQL);gm('SQL скопирован.')}catch(e){ta.select();gm('Выделите код и скопируйте вручную.')}},1),iu,ik,
+   gb('Сохранить и продолжить',()=>{const u=iu.value.trim(),k=ik.value.trim();if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(u)){gm('Адрес должен выглядеть так: https://…supabase.co');return}if(!k||keyBad(k)){gm(k?'Это секретный ключ, его нельзя использовать на сайте. Возьмите Publishable (anon).':'Вставьте ключ.');return}localStorage.setItem(CKU,u);localStorage.setItem(CKK,k);gateUI(true)}),h('p',{id:'gmsg'},note));return}
+ if(keyBad(G.key)){box(h('p',{},'В настройках сайта указан секретный ключ Supabase. Его нельзя использовать на сайте: он даёт полный доступ к базе. Замените его на Publishable (anon) key и создайте новый секретный ключ в Supabase.'));return}
+ if(RECOV){const pw=h('input',{type:'password',placeholder:'Новый пароль (не короче 6 символов)',autocomplete:'new-password'});
+  box(h('p',{},'Придумайте новый пароль.'),pw,gb('Сохранить пароль',async()=>{try{await aReq('user',{password:pw.value},{method:'PUT',tok:RECOV.token});RECOV=null;GNOTE='Пароль изменён. Войдите с новым паролем.';gateUI()}catch(e){gm(errMsg(e))}}),h('p',{id:'gmsg'},''));return}
+ if(G.sess){box(h('p',{id:'gmsg'},note||'Подключаюсь к облаку…'),gb('Повторить',()=>{gm('Подключаюсь…');connect()}),gb('Войти в другой аккаунт',()=>{localStorage.removeItem(SK);G.sess=null;gateUI(true)},1),gb('Работать офлайн (данные сохранятся на устройстве)',()=>startOffline(),1));if(!retry)connect();return}
+ authScreen('login',note)}
+function authScreen(mode,note){const g=document.getElementById('gate'),reg=mode==='reg';
+ const em=h('input',{type:'email',placeholder:'Почта',autocomplete:'email'}),pw=h('input',{type:'password',placeholder:reg?'Пароль (не короче 6 символов)':'Пароль',autocomplete:reg?'new-password':'current-password'}),msg=h('p',{id:'gmsg'},note||'');
+ const submit=async()=>{const email=em.value.trim(),pass=pw.value;if(!email||!pass){gm('Введите почту и пароль.');return}gm(reg?'Создаю аккаунт…':'Вхожу…');
+  try{if(reg){const j=await aReq('signup',{email,password:pass});if(j&&j.access_token){setSess(j);gateUI()}else gm('Мы отправили письмо на '+email+'. Откройте его и подтвердите почту, потом нажмите «Войти».')}
+   else{const j=await aReq('token?grant_type=password',{email,password:pass});setSess(j);gateUI()}}
+  catch(e){gm(errMsg(e))}};
+ [em,pw].forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter')submit()}));
+ g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'📖 План книги'),h('p',{},reg?'Создайте аккаунт: данные будут сохраняться в облаке и доступны с любого устройства.':'Войдите в свой аккаунт, чтобы продолжить.'),em,pw,gb2(reg?'Зарегистрироваться':'Войти',submit),msg,
+  h('p',{class:'gnote'},h('a',{href:'#',on:{click:e=>{e.preventDefault();authScreen(reg?'login':'reg')}}},reg?'Уже есть аккаунт? Войти':'Нет аккаунта? Зарегистрироваться')),
+  reg?'':h('p',{class:'gnote'},h('a',{href:'#',on:{click:async e=>{e.preventDefault();const email=em.value.trim();if(!email){gm('Введите почту, на неё придёт ссылка для смены пароля.');return}try{await aReq('recover?redirect_to='+enc(redirectUri()),{email});gm('Если такая почта зарегистрирована, мы отправили на неё ссылку для смены пароля.')}catch(x){gm(errMsg(x))}}}},'Забыли пароль?'))))}
+const gb2=(l,f)=>h('button',{class:'gbtn',on:{click:f}},l);
+async function signOut(){if(G.dirty&&conn())await pushNow();const still=G.dirty;if(!still)await kvSet(lsk(),null).catch(()=>{});else toast('Часть правок не отправлена: она останется на этом устройстве до следующего входа.');
+ try{if(G.sess)await aReq('logout',null,{tok:G.sess.access})}catch(e){}
+ localStorage.removeItem(SK);G.sess=null;G.ready=false;G.base=null;G.dirty=false;S.tabs=defaultTabs();S.active=0;render();closeModal();updBk();gateUI(true)}
 /* файлы: восстановить */
 function restoreFrom(t){let o;try{o=JSON.parse(t)}catch(e){bsay('Это не файл копии: не удалось разобрать содержимое.');return}
  if(!o||!Array.isArray(o.tabs)||!o.tabs.length||!o.tabs.every(x=>x&&typeof x.name==='string'&&Array.isArray(x.blocks))){bsay('В файле нет данных этого сайта.');return}
@@ -572,33 +588,28 @@ function restoreFrom(t){let o;try{o=JSON.parse(t)}catch(e){bsay('Это не ф�
 const fr=h('input',{type:'file',accept:'.json,application/json',hidden:true});document.body.append(fr);
 fr.onchange=()=>{const f=fr.files[0];fr.value='';if(f)f.text().then(restoreFrom).catch(()=>bsay('Не удалось прочитать файл.'))};
 /* проверка подключения: показывает, на каком шаге возникает проблема */
-async function diag(say){const out=[],TF='app:/plan-knigi-test.js',TXT='проверка '+Date.now(),body=PREFIX+JSON.stringify({t:TXT})+';';let href=null,direct=false,viaFrame=false;
+async function diag(say){const out=[];
  const line=(ok,l,v)=>{out.push((ok?'✓ ':'✗ ')+l+(v?' — '+v:''));say(out.join('\n'))};
- const bad=e=>e&&e.net?'нет ответа (интернет или запрет браузера)':e&&e.auth?'вход истёк':e&&e.http?'ошибка '+e.http+(e.msg?' '+e.msg:''):(e&&e.msg)||String(e);
+ const bad=e=>e&&e.net?'нет ответа (интернет или запрет браузера)':e&&e.auth?'вход истёк':e&&(e.code==='42P01'||e.code==='PGRST205')?'таблицы plan_data нет: выполните SQL-настройку':errMsg(e);
  const step=async(l,f)=>{try{const v=await f();line(true,l,v);return true}catch(e){line(false,l,bad(e));return false}};
- if(!await step('Вход через Яндекс',async()=>{if(!G.token||Date.now()>G.exp)throw{auth:1};return 'токен действует'}))return;
- if(!await step('Доступ к папке приложения',async()=>{const r=await yfetch(API+'resources?path='+enc('app:/')+'&limit=1',{},25000,true);return r.status===404?'папка появится при первом сохранении':'открыта'}))return;
- if(!await step('Запись тестового файла',async()=>{let u;try{u=await(await yfetch(API+'resources/upload?path='+enc(TF)+'&overwrite=true')).json()}catch(e){if(e&&e.http===409){await yfetch(API+'resources?path='+enc('app:/'),{method:'PUT'}).catch(()=>{});u=await(await yfetch(API+'resources/upload?path='+enc(TF)+'&overwrite=true')).json()}else throw e}
-  const r=await tfetch(u.href,{method:'PUT',body},60000);if(r.status>=300)throw{http:r.status};return 'отправлено (код '+r.status+')'}))return;
- if(!await step('Ссылка на чтение файла',async()=>{for(let i=0;i<10;i++){const m=await yfetch(API+'resources?path='+enc(TF)+'&fields=size',{},25000,true);if(m.status!==404)break;await wait(1000)}
-  href=(await(await yfetch(API+'resources/download?path='+enc(TF))).json()).href;return 'получена'}))return;
- direct=await step('Чтение напрямую (Яндекс обычно этого не разрешает)',async()=>{const r=await tfetch(href,{},30000);if(!r.ok)throw{http:r.status};const o=parseData(await r.text());if(!o||o.t!==TXT)throw{msg:'прочиталось не то'};return 'совпадает'});
- viaFrame=await step('Чтение через запасной способ (изолированное окно)',async()=>{const o=await frameRead(href);if(!o||o.t!==TXT)throw{msg:'прочиталось не то'};return 'совпадает'});
- await step('Удаление тестового файла',async()=>{await yfetch(API+'resources?path='+enc(TF)+'&permanently=true',{method:'DELETE'});return 'удалён'});
- out.push('');out.push(direct||viaFrame?'Всё работает: данные можно хранить на вашем Яндекс Диске ('+(direct?'чтение напрямую':'чтение через запасной способ')+').':'Читать файлы с Диска браузер не может ни одним способом. Покажите этот текст тому, кто помогает с сайтом.');say(out.join('\n'))}
-/* окно «Яндекс Диск» */
+ if(!await step('Адрес и ключ проекта',async()=>{const r=await tfetch(G.url+'/auth/v1/settings',{headers:{apikey:G.key}},25000);if(!r.ok)throw{http:r.status};const j=await r.json();return 'проект отвечает; подтверждение почты '+(j.mailer_autoconfirm?'выключено':'включено')+', регистрация '+(j.disable_signup?'закрыта':'открыта')}))return;
+ if(!await step('Вход в аккаунт',async()=>{await ensureTok();return G.sess.email||'выполнен'}))return;
+ if(!await step('Таблица данных',async()=>{const r=await(await rest('plan_data?select=version&user_id=eq.'+G.sess.uid)).json();return r.length?'ваша запись есть (версия '+r[0].version+')':'таблица есть, ваших данных ещё нет'}))return;
+ await step('Запись в таблицу',async()=>{const r=await(await rest('plan_data?user_id=eq.'+G.sess.uid,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({updated_at:new Date().toISOString()})})).json();return r.length?'разрешена':'пропущено: данных ещё нет'});
+ out.push('');out.push(out.some(x=>x.startsWith('✗'))?'Есть ошибки. Покажите этот текст тому, кто помогает с сайтом.':'Всё работает: данные сохраняются в облачной базе.');say(out.join('\n'))}
+/* окно «Аккаунт» */
 document.getElementById('bk').onclick=()=>{if(!G.ready)return;const st=h('p',{id:'bst'},''),info=h('p',{id:'gst'},''),pre=h('pre',{class:'gpre'});bsay=m=>{st.textContent=m};
- const refresh=()=>{info.replaceChildren(conn()?'Файл «plan-knigi-data.js» в папке приложения на вашем Яндекс Диске (Диск → Приложения).':'',h('br'),'Состояние: '+statusText());updBk()};
+ const refresh=()=>{info.replaceChildren(conn()?'Аккаунт: '+(G.sess.email||'—')+'. Данные хранятся в облачной базе сайта, отдельно для вашего аккаунта.':'',h('br'),'Состояние: '+statusText());updBk()};
  const B=(l,f)=>h('button',{class:'it',on:{click:f}},l),act=f=>async()=>{try{await f()}catch(e){bsay(errMsg(e))}refresh()};
- const box=h('div',{class:'box'},h('h3',{},'Яндекс Диск'),info);
- if(!conn()){box.append(B('🔗 Войти через Яндекс',()=>{closeModal();if(G.cid)loginYa();else gateUI(true)}),B('⬇ Скачать копию (.json)',()=>{dl(backupData(),'копия');bsay('Файл скачан.')}),B('⬆ Восстановить из файла…',()=>fr.click()),st,h('button',{class:'add',on:{click:closeModal}},'Закрыть'));modal.replaceChildren(box);modal.classList.add('on');refresh();return}
- if(G.err==='conflict')box.append(B('⬇ Скачать мою версию и загрузить версию с Диска',act(async()=>{dl(backupData(),'моя-версия');const m=await getMeta(),r=await pullRemote();G.base=m.md5;startApp(r.tabs,false);bsay('Загружена версия с Диска.')})),B('Перезаписать Диск моей версией',act(async()=>{G.force=true;G.err='';G.dirty=true;await pushNow()})));
- if(G.err==='auth')box.append(B('🔑 Войти снова через Яндекс',loginYa));
- box.append(B('☁ Сохранить сейчас',act(async()=>{bsay('Сохраняю…');G.err='';G.dirty=true;await pushNow();bsay(G.err?'':'Готово: данные на Яндекс Диске.')})),
+ const box=h('div',{class:'box'},h('h3',{},'Аккаунт и облако'),info);
+ if(!conn()){box.append(B('🔗 Войти или зарегистрироваться',()=>{closeModal();gateUI(true)}),B('⬇ Скачать копию (.json)',()=>{dl(backupData(),'копия');bsay('Файл скачан.')}),B('⬆ Восстановить из файла…',()=>fr.click()),st,h('button',{class:'add',on:{click:closeModal}},'Закрыть'));modal.replaceChildren(box);modal.classList.add('on');refresh();return}
+ if(G.err==='conflict')box.append(B('⬇ Скачать мою версию и загрузить версию из облака',act(async()=>{dl(backupData(),'моя-версия');const row=await pullData();G.base=row.version;startApp(row.data.tabs,false);bsay('Загружена версия из облака.')})),B('Перезаписать облако моей версией',act(async()=>{G.force=true;G.err='';G.dirty=true;await pushNow()})));
+ if(G.err==='auth')box.append(B('🔑 Войти снова',()=>{closeModal();localStorage.removeItem(SK);G.sess=null;G.ready=false;gateUI(true)}));
+ box.append(B('☁ Сохранить сейчас',act(async()=>{bsay('Сохраняю…');G.err='';G.dirty=true;await pushNow();bsay(G.err?'':'Готово: данные в облаке.')})),
   B('🩺 Проверить подключение',()=>{bsay('Проверяю…');diag(t=>{pre.textContent=t}).then(()=>bsay(''))}),pre,
   B('⬇ Скачать копию (.json)',()=>{dl(backupData(),'копия');bsay('Файл скачан.')}),B('⬆ Восстановить из файла…',()=>fr.click()),
-  B('Выйти из Яндекса на этом устройстве',disconnect),st,
-  h('p',{class:'gnote'},'Доступ приложения можно отозвать на id.yandex.ru → «Доступ к данным».'),h('button',{class:'add',on:{click:closeModal}},'Закрыть'));
+  B('Выйти из аккаунта',signOut),st,
+  h('p',{class:'gnote'},'Автоматических резервных копий в облаке нет, поэтому изредка скачивайте файл копии.'),h('button',{class:'add',on:{click:closeModal}},'Закрыть'));
  modal.replaceChildren(box);modal.classList.add('on');refresh()};
 /* ячейки таблиц: выделение диапазона, копирование и вставка */
 let CS=null,CLIP=null,CDRAG=null,ANCH=null,TCNT=1;
