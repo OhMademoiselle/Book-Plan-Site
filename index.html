@@ -399,7 +399,7 @@ function go(id){let ti=-1,anc=[];S.tabs.forEach((t,i)=>{const r=find(t.blocks,id
 document.getElementById('main').addEventListener('click',ev=>{const a=ev.target.closest('a[data-b]');if(!a)return;
  if(S.edit&&!(ev.ctrlKey||ev.metaKey))return;ev.preventDefault();go(a.dataset.b)});
 /* вставка изображений */
-async function addImg(f){if(!G.dek||!G.sess){toast('Сначала войдите в аккаунт.');return}toast('Обрабатываю изображение…');
+async function addImg(f){if(!G.sess){toast('Сначала войдите в аккаунт.');return}toast('Обрабатываю изображение…');
  try{const r=await imgStoreNew(f);S.tabs[S.active].blocks.push({id:uid(),t:'img',src:r.name,ar:r.ar,iw:100,x:''});upd();window.scrollTo(0,document.body.scrollHeight)}catch(e){toast((e&&e.msg)||'Не удалось добавить изображение')}}
 /* объединение выбором блоков */
 function startMM(){if(S.tabs[S.active].blocks.length<2){toast('Для объединения нужно хотя бы два блока');return}MM=[];document.body.classList.add('mm');renderMM()}
@@ -503,10 +503,10 @@ function doSearch(){const v=q.value.trim().toLowerCase();sres.replaceChildren();
 q.addEventListener('input',doSearch);q.addEventListener('focus',doSearch);
 q.addEventListener('keydown',e=>{if(e.key==='Escape'){q.value='';doSearch();q.blur()}});
 document.addEventListener('click',e=>{if(!e.target.closest('.sr'))sres.classList.remove('on')});
-/* ===== Supabase: аккаунты сайта, зашифрованные данные и изображения ===== */
+/* ===== Supabase: аккаунты сайта, данные и изображения в облаке ===== */
 const SUPABASE_URL='https://jmwgsvzxnfgwbrtwiyse.supabase.co',SUPABASE_KEY='sb_publishable_Khj6xR6ZFHk--8SHEwiRwg_njvwsGWp';/* публичные адрес и ключ проекта (publishable / anon). Секретный ключ (secret / service_role) сюда вставлять нельзя */
 const SK='plan-knigi-sb';
-const G={url:'',key:'',sess:null,base:null,dirty:false,pushing:false,timer:null,st:null,err:'',at:0,ready:false,force:false,offline:false,busyRc:false,dek:null,meta:null,metaChanged:false,pend:new Set(),pass:null,remember:true};
+const G={url:'',key:'',sess:null,base:null,dirty:false,pushing:false,timer:null,st:null,err:'',at:0,ready:false,force:false,offline:false,busyRc:false,pend:new Set()};
 let bsay=()=>{},GNOTE='',RECOV=null,refreshP=null;
 const conn=()=>!!(G.sess&&G.sess.refresh),enc=encodeURIComponent,wait=ms=>new Promise(r=>setTimeout(r,ms));
 const lsk=()=>'state:'+((G.sess&&G.sess.uid)||'anon');
@@ -519,40 +519,18 @@ function dl(data,tag,ext,type){const a=document.createElement('a');a.href=URL.cr
 const redirectUri=()=>location.origin+location.pathname.replace(/index\.html$/,'');
 const cfg=()=>{G.url=SUPABASE_URL.trim().replace(/\/+$/,'').replace(/\/(rest|auth)\/v1$/,'');G.key=SUPABASE_KEY.trim()};
 const keyBad=k=>{if(/^sb_secret_/.test(k))return true;try{const p=JSON.parse(atob(k.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));return p.role==='service_role'}catch(e){return false}};
-/* ---- шифрование (WebCrypto): данные и изображения шифруются на устройстве, облако видит только зашифрованные байты ---- */
+/* ---- вспомогательные функции ---- */
 const b64=u=>{u=u instanceof Uint8Array?u:new Uint8Array(u);let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)};
 const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-const rnd=n=>crypto.getRandomValues(new Uint8Array(n)),KIT=600000,B32='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-const b32=u=>{let bits=0,v=0,o='';for(const x of u){v=(v<<8)|x;bits+=8;while(bits>=5){o+=B32[(v>>>(bits-5))&31];bits-=5}}if(bits>0)o+=B32[(v<<(5-bits))&31];return o.match(/.{1,4}/g).join('-')};
+const rnd=n=>crypto.getRandomValues(new Uint8Array(n));
 const newName=()=>b64(rnd(12)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-async function kekPass(pass,salt,it){const m=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass.normalize('NFKC')),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:it,hash:'SHA-256'},m,{name:'AES-GCM',length:256},false,['wrapKey','unwrapKey'])}
-async function authPw(pass){const m=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass.normalize('NFKC')),'PBKDF2',false,['deriveBits']);
- return b64(await crypto.subtle.deriveBits({name:'PBKDF2',salt:new TextEncoder().encode('plan-knigi|login|v1'),iterations:KIT,hash:'SHA-256'},m,256))}
-async function passOk(meta,pass){try{await unwrapDek(meta.w.p,await kekPass(pass,unb64(meta.salt),meta.it),false);return true}catch(e){return false}}
-async function kekRec(rk){const raw=new TextEncoder().encode(rk.replace(/[^A-Za-z2-7]/g,'').toUpperCase());return crypto.subtle.importKey('raw',await crypto.subtle.digest('SHA-256',raw),'AES-GCM',false,['wrapKey','unwrapKey'])}
-const wrapDek=async(dek,kek)=>{const iv=rnd(12);return{iv:b64(iv),ct:b64(await crypto.subtle.wrapKey('raw',dek,kek,{name:'AES-GCM',iv}))}};
-const unwrapDek=(w,kek,ext)=>crypto.subtle.unwrapKey('raw',unb64(w.ct),kek,{name:'AES-GCM',iv:unb64(w.iv)},{name:'AES-GCM',length:256},!!ext,['encrypt','decrypt']);
-async function newKeys(pass){const salt=rnd(16),kek=await kekPass(pass,salt,KIT),dek=await crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']),rk=b32(rnd(20));
- const wp=await wrapDek(dek,kek),wr=await wrapDek(dek,await kekRec(rk));
- G.meta={enc:2,kid:b64(rnd(9)),kdf:'PBKDF2-SHA256',it:KIT,salt:b64(salt),w:{p:wp,r:wr}};G.dek=await unwrapDek(wp,kek,false);return rk}
-async function openPass(meta,pass){const kek=await kekPass(pass,unb64(meta.salt),meta.it);try{G.dek=await unwrapDek(meta.w.p,kek,false)}catch(e){throw{msg:'Неверный пароль.'}}G.meta=meta}
-async function openRec(meta,rk,newPass){let dx;try{dx=await unwrapDek(meta.w.r,await kekRec(rk),true)}catch(e){throw{msg:'Неверный ключ восстановления.'}}
- const salt=rnd(16),kek=await kekPass(newPass,salt,KIT),wp=await wrapDek(dx,kek);G.meta={...meta,salt:b64(salt),it:KIT,w:{...meta.w,p:wp}};G.dek=await unwrapDek(wp,kek,false);G.metaChanged=true}
-async function changePass(oldPass,newPass){const m=G.meta;let dx;try{dx=await unwrapDek(m.w.p,await kekPass(oldPass,unb64(m.salt),m.it),true)}catch(e){throw{msg:'Текущий пароль неверен.'}}
- const salt=rnd(16),kek=await kekPass(newPass,salt,KIT),wp=await wrapDek(dx,kek);G.meta={...m,salt:b64(salt),it:KIT,w:{...m.w,p:wp}};G.metaChanged=true}
-async function encBytes(bytes){const iv=rnd(12),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},G.dek,bytes),o=new Uint8Array(12+ct.byteLength);o.set(iv);o.set(new Uint8Array(ct),12);return o}
-async function decBytes(buf){const u=buf instanceof Uint8Array?buf:new Uint8Array(buf);return crypto.subtle.decrypt({name:'AES-GCM',iv:u.slice(0,12)},G.dek,u.slice(12))}
-const encJSON=async o=>b64(await encBytes(new TextEncoder().encode(JSON.stringify(o))));
-const decJSON=async s=>JSON.parse(new TextDecoder().decode(await decBytes(unb64(s))));
-const metaOf=d=>({enc:2,kid:d.kid,kdf:d.kdf,it:d.it,salt:d.salt,w:d.w});
-const rememberKey=async()=>{try{await kvSet('ck:'+G.sess.uid,{kid:G.meta.kid,dek:G.dek})}catch(e){}};
 /* ---- локальное хранилище (IndexedDB), отдельно для каждого аккаунта ---- */
 const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('plan-knigi',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 const kvGet=async k=>{const d=await idb();return new Promise((res,rej)=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})};
 const kvSet=async(k,v)=>{const d=await idb();return new Promise((res,rej)=>{const t=d.transaction('kv','readwrite');v==null?t.objectStore('kv').delete(k):t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})};
 const kvDelPrefix=async p=>{const d=await idb();return new Promise((res,rej)=>{const t=d.transaction('kv','readwrite'),s=t.objectStore('kv'),q=s.openCursor();q.onsuccess=()=>{const c=q.result;if(!c)return;if(String(c.key).startsWith(p))c.delete();c.continue()};t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})};
-const saveLocal=async()=>{if(!G.dek||!G.meta||!G.sess)return;try{await kvSet(lsk(),{meta:G.meta,d:await encJSON({tabs:S.tabs}),dirty:G.dirty,base:G.base,at:Date.now()})}catch(e){toast('Не удалось сохранить копию в браузере')}};
-async function readLocalTabs(loc){if(!loc)return null;try{if(loc.d)return(await decJSON(loc.d)).tabs;return loc.tabs||null}catch(e){return null}}
+const saveLocal=async()=>{if(!G.sess)return;try{await kvSet(lsk(),{tabs:S.tabs,dirty:G.dirty,base:G.base,at:Date.now()})}catch(e){toast('Не удалось сохранить копию в браузере')}};
+async function readLocalTabs(loc){return loc&&Array.isArray(loc.tabs)&&loc.tabs.length?loc.tabs:null}
 const loadPend=async()=>{try{G.pend=new Set((await kvGet('pend:'+G.sess.uid))||[])}catch(e){G.pend=new Set()}};
 /* ---- связь с Supabase ---- */
 async function tfetch(url,opt={},ms=25000){const ac=new AbortController(),to=setTimeout(()=>ac.abort(),ms);try{return await fetch(url,{...opt,signal:ac.signal})}catch(e){throw{net:1}}finally{clearTimeout(to)}}
@@ -568,20 +546,17 @@ async function rest(path,opt={}){await ensureTok();const r=await tfetch(G.url+'/
  if(!r.ok){let j=null;try{j=await r.json()}catch(e){}throw{http:r.status,code:(j&&j.code)||'',msg:(j&&(j.message||j.hint))||''}}return r}
 async function sto(path,opt={}){await ensureTok();const r=await tfetch(G.url+'/storage/v1/'+path,{...opt,headers:{apikey:G.key,Authorization:'Bearer '+G.sess.access,...(opt.headers||{})}},60000);if(r.status===401)throw{auth:1};return r}
 const errMsg=e=>e&&e.net?'Нет связи с облаком. Если интернет есть, а ошибка не пропадает, нажмите ☁ → «Проверить подключение».':e&&e.auth?'Нужно войти снова (правки пока сохранены в этом браузере).':e&&(e.code==='42P01'||e.code==='PGRST205'||e.http===404)?'В облаке нет нужной таблицы или хранилища: владельцу сайта нужно выполнить SQL-настройку.':e&&(e.code==='42501'||e.http===403)?'У аккаунта нет прав на таблицу или хранилище. Владельцу сайта нужно проверить SQL-настройку (политики доступа).':e&&e.http===413?'Данных слишком много для одной отправки. Уберите часть изображений.':e&&e.http===429?'Слишком много запросов. Повторю позже.':e&&(e.code==='invalid_credentials'||/Invalid login credentials/i.test(e.msg||''))?'Неверная почта или пароль.':e&&(e.code==='email_not_confirmed'||/not confirmed/i.test(e.msg||''))?'Почта ещё не подтверждена: откройте письмо от сайта и перейдите по ссылке.':e&&(e.code==='user_already_exists'||/already registered/i.test(e.msg||''))?'Такая почта уже зарегистрирована. Нажмите «Войти».':e&&(e.code==='weak_password'||/at least/i.test(e.msg||''))?'Пароль слишком простой: нужно не меньше 6 символов.':e&&(e.code==='over_email_send_rate_limit'||e.code==='over_request_rate_limit')?'Слишком много писем или попыток. Подождите немного и повторите.':e&&e.code==='signup_disabled'?'Регистрация новых пользователей отключена владельцем сайта.':e&&e.http?'Облако вернуло ошибку '+e.http+(e.msg?': '+e.msg:'')+'.':(e&&e.msg)||'Что-то пошло не так. Повторите позже.';
-/* ---- данные: одна запись на аккаунт; внутри — зашифрованный конверт ---- */
+/* ---- данные: одна запись на аккаунт ---- */
 async function pull(){const a=await(await rest('plan_data?select=data,version&user_id=eq.'+G.sess.uid)).json();return a&&a[0]?a[0]:null}
-const rowOk=r=>r&&r.data&&(r.data.enc===2?typeof r.data.d==='string'&&r.data.w:Array.isArray(r.data.tabs)&&r.data.tabs.length);
+const rowOk=r=>r&&r.data&&Array.isArray(r.data.tabs)&&r.data.tabs.length;
 const BADROW={msg:'Данные в облаке пусты или повреждены. Я ничего не перезаписываю: попросите владельца сайта посмотреть таблицу plan_data.'};
-async function openRow(row){const d=row.data;if(d.enc!==2)return{tabs:d.tabs,saved:d.saved};
- if(!G.dek||!G.meta||G.meta.kid!==d.kid)throw{msg:'Данные в облаке зашифрованы другим ключом. Выйдите из аккаунта и войдите снова, чтобы открыть данные паролем.'};
- if(!G.metaChanged)G.meta=metaOf(d);let o;try{o=await decJSON(d.d)}catch(e){throw{msg:'Не удалось расшифровать данные: запись повреждена или ключ не подходит.'}}
- if(!o||!Array.isArray(o.tabs)||!o.tabs.length)throw BADROW;return o}
-async function writeRow(obj,force){const uid=G.sess.uid,P={Prefer:'return=representation'},data={...G.meta,d:await encJSON(obj)};let rows;
+async function openRow(row){return{tabs:row.data.tabs,saved:row.data.saved}}
+async function writeRow(obj,force){const uid=G.sess.uid,P={Prefer:'return=representation'},data=obj;let rows;
  if(force){const cur=await pull();G.base=cur?cur.version:null}
  if(G.base==null){try{rows=await(await rest('plan_data',{method:'POST',headers:P,body:JSON.stringify({user_id:uid,data,version:1})})).json()}catch(e){if(e&&e.http===409)throw{conflict:1};throw e}}
  else{rows=await(await rest('plan_data?user_id=eq.'+uid+'&version=eq.'+G.base,{method:'PATCH',headers:P,body:JSON.stringify({data,version:G.base+1,updated_at:new Date().toISOString()})})).json();if(!rows.length)throw{conflict:1}}
  return rows[0].version}
-/* ---- изображения: сжатие, шифрование, хранение в облачном хранилище, кэш на устройстве ---- */
+/* ---- изображения: сжатие, хранение в закрытом облачном хранилище, кэш на устройстве ---- */
 const IMGU={},MIMES=['','image/webp','image/jpeg','image/png'];
 async function imgPrepare(file){
  if(!/^image\//.test(file.type))throw{msg:'Выберите файл с изображением.'};if(file.size>30e6)throw{msg:'Файл слишком большой (больше 30 МБ).'};
@@ -590,12 +565,12 @@ async function imgPrepare(file){
  const tob=(t,q)=>new Promise(r=>c.toBlob(r,t,q));let bl=await tob('image/webp',.82),tag=1;
  if(!bl||bl.type!=='image/webp'){x.globalCompositeOperation='destination-over';x.fillStyle='#fff';x.fillRect(0,0,w,hh);bl=await tob('image/jpeg',.82);tag=2}
  if(!bl)throw{msg:'Не удалось сжать изображение.'};return{tag,body:new Uint8Array(await bl.arrayBuffer()),ar:w/hh}}
-const imgPack=(tag,body)=>{const u=new Uint8Array(body.length+1);u[0]=tag;u.set(body,1);return encBytes(u)};
+const imgPack=async(tag,body)=>{const u=new Uint8Array(body.length+1);u[0]=tag;u.set(body,1);return u};
 async function imgStoreNew(file){const p=await imgPrepare(file),name=newName(),e=await imgPack(p.tag,p.body);
  await kvSet('img:'+G.sess.uid+':'+name,e.buffer);G.pend.add(name);await kvSet('pend:'+G.sess.uid,[...G.pend]);IMGU[name]=URL.createObjectURL(new Blob([p.body],{type:MIMES[p.tag]}));return{name,ar:p.ar}}
 async function loadImg(name){if(IMGU[name])return IMGU[name];let e=await kvGet('img:'+G.sess.uid+':'+name);
  if(!e){const r=await sto('object/authenticated/plan-images/'+G.sess.uid+'/'+name);if(!r.ok)throw{http:r.status};e=await r.arrayBuffer();await kvSet('img:'+G.sess.uid+':'+name,e).catch(()=>{})}
- const u=new Uint8Array(await decBytes(e));return IMGU[name]=URL.createObjectURL(new Blob([u.slice(1)],{type:MIMES[u[0]]||'image/jpeg'}))}
+ const u=new Uint8Array(e);return IMGU[name]=URL.createObjectURL(new Blob([u.slice(1)],{type:MIMES[u[0]]||'image/jpeg'}))}
 async function uploadPending(){for(const name of [...G.pend]){const e=await kvGet('img:'+G.sess.uid+':'+name);if(!e){G.pend.delete(name);continue}
   const r=await sto('object/plan-images/'+G.sess.uid+'/'+name,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:e});
   if(!r.ok){let j=null;try{j=await r.json()}catch(x){}if(!(j&&(String(j.statusCode)==='409'||j.error==='Duplicate')))throw{http:r.status,msg:(j&&j.message)||''}}
@@ -613,14 +588,14 @@ async function cleanImages(){const used=new Set(),walk=bl=>bl.forEach(b=>{if(b.t
 /* ---- сохранение ---- */
 function dataChanged(){if(!G.ready)return;G.dirty=true;saveLocal();updBk();schedPush()}
 function schedPush(){clearTimeout(G.timer);G.timer=setTimeout(pushNow,5000)}
-async function pushNow(){clearTimeout(G.timer);if(!G.ready||!conn()||!G.dirty||G.pushing||!G.dek)return;G.pushing=true;G.err='';updBk();const snap=snapS(),force=G.force;
+async function pushNow(){clearTimeout(G.timer);if(!G.ready||!conn()||!G.dirty||G.pushing)return;G.pushing=true;G.err='';updBk();const snap=snapS(),force=G.force;
  try{await uploadPending();const obj={app:'plan-knigi',v:3,saved:new Date().toISOString(),tabs:S.tabs};let ver;
   try{ver=await writeRow(obj,force)}
   catch(e){if(e&&e.conflict){const cur=await pull();if(!cur){G.base=null;ver=await writeRow(obj,false)}else{let same=false;try{const o=await openRow(cur);same=JSON.stringify(o.tabs)===JSON.stringify(S.tabs)}catch(x){}if(same)ver=cur.version;else throw{conflict:1}}}else throw e}
-  G.offline=false;G.base=ver;G.at=Date.now();G.force=false;G.metaChanged=false;if(snapS()===snap)G.dirty=false;await saveLocal()}
+  G.offline=false;G.base=ver;G.at=Date.now();G.force=false;if(snapS()===snap)G.dirty=false;await saveLocal()}
  catch(e){if(e&&e.conflict){G.offline=false;G.err='conflict'}else if(e&&e.auth)G.err='auth';else if(e&&e.net){G.offline=true;G.timer=setTimeout(pushNow,30000)}else G.err=errMsg(e)}
  G.pushing=false;updBk();if(G.dirty&&!G.err&&!G.offline)schedPush()}
-function statusText(){return !conn()?'вы не вошли в аккаунт: данные хранятся только на этом устройстве':G.err==='auth'?'нужно войти снова (правки пока сохранены в этом браузере)':G.offline?'нет связи с облаком — правки сохраняются на этом устройстве и отправятся, когда связь появится':G.pushing?'сохраняю…':G.err==='conflict'?'в облаке другая версия данных — выберите, какую оставить':G.err?G.err:G.dirty?'есть несохранённые правки, отправлю через несколько секунд':'всё сохранено (зашифровано)'+(G.at?' · '+fmtT(G.at):'')}
+function statusText(){return !conn()?'вы не вошли в аккаунт: данные хранятся только на этом устройстве':G.err==='auth'?'нужно войти снова (правки пока сохранены в этом браузере)':G.offline?'нет связи с облаком — правки сохраняются на этом устройстве и отправятся, когда связь появится':G.pushing?'сохраняю…':G.err==='conflict'?'в облаке другая версия данных — выберите, какую оставить':G.err?G.err:G.dirty?'есть несохранённые правки, отправлю через несколько секунд':'всё сохранено'+(G.at?' · '+fmtT(G.at):'')}
 function updBk(){const b=document.getElementById('bk');if(!b)return;
  b.textContent='☁'+(!G.ready?' Аккаунт':!conn()?' Не вошли':G.err==='auth'?' ⚠ Войдите снова':G.offline?' Офлайн':G.pushing?' Сохраняю…':G.err==='conflict'?' ⚠ Конфликт':G.err?' ⚠ Ошибка':G.dirty?' Не сохранено':' Сохранено ✓');
  b.title=G.ready?(G.sess&&G.sess.email?G.sess.email+': ':'')+statusText():'Аккаунт'}
@@ -634,38 +609,8 @@ const gm=t=>{const m=document.getElementById('gmsg');if(m)m.textContent=t};
 function conflictGate(loc,remote){return new Promise(res=>{const gb=(l,f,s)=>h('button',{class:'gbtn'+(s?' s':''),on:{click:f}},l);
  document.getElementById('gate').replaceChildren(h('div',{class:'gbox'},h('h2',{},'Найдены две версии'),h('p',{},'В облаке: от '+fmtT(remote.saved)+'. На этом устройстве есть несохранённые правки от '+fmtT(loc.at)+'. Какую оставить?'),
   gb('⬇ Сначала скачать версию с устройства (.json)',()=>dl(JSON.stringify({app:'plan-knigi',v:3,saved:new Date(loc.at).toISOString(),tabs:loc.tabs}),'устройство'),1),gb('Оставить версию из облака',()=>res('remote')),gb('Оставить версию с устройства (облако обновится)',()=>res('local'))))})}
-/* экраны ключа шифрования: пароль аккаунта = пароль шифрования (один пароль) */
-function cryptoGate(mode,meta,rk0){return new Promise(resolve=>{const g=document.getElementById('gate');g.style.display='flex';
- const box=(...c)=>g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'🔐 Ключ данных'),...c)),gb=(l,f,s)=>h('button',{class:'gbtn'+(s?' s':''),on:{click:f}},l),pw=ph=>h('input',{type:'password',placeholder:ph,autocomplete:'off'});
- const rem=h('input',{type:'checkbox',checked:G.remember!==false}),remL=h('label',{class:'chk'},rem,'Запомнить на этом устройстве (не спрашивать при каждом входе)');
- const done=async()=>{G.remember=rem.checked;if(G.remember)await rememberKey();resolve()};
- const enter=(inps,f)=>inps.forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter')f()}));
- const verified=async p=>{try{await aReq('token?grant_type=password',{email:G.sess.email,password:await authPw(p)})}catch(e){if(e&&(e.http===400||e.code==='invalid_credentials'))throw{msg:'Это не текущий пароль вашего аккаунта.'};throw e}};
- const showKey=rk=>{const ok=h('input',{type:'checkbox'}),go=gb('Продолжить',done);go.disabled=true;ok.onchange=()=>{go.disabled=!ok.checked};
-  box(h('p',{},'Это ключ восстановления. Он нужен, если вы забудете пароль: без него данные не вернуть. Сохраните его в надёжном месте (менеджер паролей, запись на бумаге). Он показывается только сейчас.'),h('pre',{class:'gpre big'},rk),
-   gb('Скопировать ключ',async()=>{try{await navigator.clipboard.writeText(rk);gm('Ключ скопирован.')}catch(e){gm('Выделите ключ и скопируйте вручную.')}},1),gb('Скачать ключ (.txt)',()=>dl('Ключ восстановления «План книги»: '+rk+'\n','ключ','txt','text/plain'),1),
-   h('label',{class:'chk'},ok,'Я сохранила ключ восстановления'),go,h('p',{id:'gmsg'},''))};
- const setup=()=>{const a=pw('Пароль от аккаунта'),go=async()=>{if(!a.value){gm('Введите пароль.');return}gm('Проверяю…');await wait(30);try{await verified(a.value);const rk=await newKeys(a.value);G.pass=a.value;showKey(rk)}catch(e){gm((e&&e.msg)||errMsg(e))}};
-  box(h('p',{},'Ваши данные и изображения шифруются на этом устройстве, в облаке они лежат только в зашифрованном виде. Для шифрования нужен тот же пароль, которым вы входите в аккаунт: введите его ещё раз.'),a,remL,gb('Включить шифрование',go),h('p',{class:'gnote'},'Если забыть и пароль, и ключ восстановления, данные не сможет вернуть никто.'),h('p',{id:'gmsg'},''));enter([a],go);a.focus()};
- const recovery=mis=>{const k=h('input',{placeholder:'Ключ восстановления (XXXX-XXXX-…)',autocomplete:'off'}),a=G.pass?null:pw('Текущий пароль от аккаунта'),
-  go=async()=>{gm('Проверяю…');await wait(30);try{let np=G.pass;if(!np){if(!a.value){gm('Введите пароль.');return}await verified(a.value);np=a.value}await openRec(meta,k.value,np);G.pass=np;await done()}catch(e){gm((e&&e.msg)||errMsg(e))}};
-  box(h('p',{},mis?'Пароль не подошёл к ключу ваших данных. Так бывает после смены пароля через письмо «Забыли пароль». Введите ключ восстановления: сайт откроет данные и привяжет их к новому паролю.':'Введите ключ восстановления: сайт откроет данные и привяжет их к вашему текущему паролю.'),k,...(a?[a]:[]),remL,gb('Восстановить доступ',go),...(mis?[]:[gb('Назад',unlock,1)]),h('p',{id:'gmsg'},''));enter(a?[k,a]:[k],go);k.focus()};
- const unlock=()=>{const p=pw('Пароль от аккаунта'),
-  go=async()=>{if(!p.value){gm('Введите пароль.');return}gm('Проверяю…');await wait(30);try{await openPass(meta,p.value);await done()}catch(e){gm((e&&e.msg)||'Ошибка')}};
-  box(h('p',{},'Введите пароль от аккаунта, чтобы открыть данные на этом устройстве.'),p,remL,gb('Открыть данные',go),h('p',{class:'gnote'},h('a',{href:'#',on:{click:e=>{e.preventDefault();recovery(false)}}},'Не помню: использовать ключ восстановления')),h('p',{id:'gmsg'},''));enter([p],go);p.focus()};
- mode==='setup'?setup():mode==='showkey'?showKey(rk0):mode==='mismatch'?recovery(true):unlock()})}
-async function acquireKey(row,loc){const meta=row&&row.data&&row.data.enc===2?metaOf(row.data):(loc&&loc.meta)||null;
- if(meta){let ck=null;try{ck=await kvGet('ck:'+G.sess.uid)}catch(e){}
-  if(ck&&ck.kid===meta.kid&&ck.dek){if(G.pass&&!await passOk(meta,G.pass)){await cryptoGate('mismatch',meta);return}G.dek=ck.dek;G.meta=meta;return}
-  if(G.pass){if(await passOk(meta,G.pass)){await openPass(meta,G.pass);if(G.remember!==false)await rememberKey();return}await cryptoGate('mismatch',meta);return}
-  await cryptoGate('unlock',meta);return}
- if(G.pass){const rk=await newKeys(G.pass);await cryptoGate('showkey',null,rk);return}
- await cryptoGate('setup')}
-async function startOffline(){const loc=await kvGet(lsk()).catch(()=>null);
- if(!loc||!loc.meta||!loc.d){toast('На этом устройстве ещё нет сохранённых данных: для первого входа нужен интернет.');return}
- let ck=null;try{ck=await kvGet('ck:'+G.sess.uid)}catch(e){}
- if(ck&&ck.kid===loc.meta.kid&&ck.dek){G.dek=ck.dek;G.meta=loc.meta}else await cryptoGate('unlock',loc.meta);
- const tabs=await readLocalTabs(loc);if(!tabs){toast('Не удалось открыть данные на этом устройстве.');gateUI(true);return}
+async function startOffline(){const loc=await kvGet(lsk()).catch(()=>null),tabs=await readLocalTabs(loc);
+ if(!tabs){toast('На этом устройстве ещё нет сохранённых данных: для первого входа нужен интернет.');return}
  G.base=loc.base!=null?loc.base:null;G.offline=conn();await loadPend();startApp(tabs,!!loc.dirty);
  if(conn()){G.offline=true;updBk();toast('Нет связи с облаком — работаю офлайн. Правки сохранятся, когда связь появится.')}}
 async function reconnect(){if(!G.ready||!conn()||!G.offline||G.busyRc)return;G.busyRc=true;
@@ -679,13 +624,13 @@ async function connect(){
  try{const row=await pull();
   if(G.ready){document.getElementById('gate').style.display='none';G.offline=true;await reconnect();return}
   if(row&&!rowOk(row))throw BADROW;
-  const loc=await kvGet(lsk()).catch(()=>null);await loadPend();await acquireKey(row,loc);
-  const remote=row?await openRow(row):null,locT=await readLocalTabs(loc);let tabs,pf=G.metaChanged;
+  const loc=await kvGet(lsk()).catch(()=>null);await loadPend();
+  const remote=row?await openRow(row):null,locT=await readLocalTabs(loc);let tabs,pf=false;
   if(!remote){G.base=null;tabs=locT||defaultTabs();pf=true}
   else if(!locT||!loc.dirty){tabs=remote.tabs;G.base=row.version}
   else if(loc.base!=null&&loc.base===row.version){tabs=locT;G.base=row.version;pf=true}
   else{const pick=await conflictGate({tabs:locT,at:loc.at},remote);G.base=row.version;if(pick==='remote')tabs=remote.tabs;else{tabs=locT;pf=true}}
-  if(row&&row.data.enc!==2)pf=true;if(await storeInline(tabs))pf=true;
+  if(await storeInline(tabs))pf=true;
   startApp(tabs,pf)}
  catch(e){if(G.ready)return;if(e&&e.net){startOffline();return}
   if(e&&e.auth){localStorage.removeItem(SK);G.sess=null;GNOTE='Вход истёк. Войдите снова.';gateUI();return}
@@ -702,58 +647,52 @@ function gateUI(retry){const g=document.getElementById('gate');g.style.display='
  const gb=(l,f,s)=>h('button',{class:'gbtn'+(s?' s':''),on:{click:f}},l),box=(...c)=>g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'📖 План книги'),...c));
  if(!G.url||!G.key){box(h('p',{},'Сайт ещё не настроен владельцем. Загляните сюда позже.'));return}
  if(keyBad(G.key)){box(h('p',{},'В настройках сайта указан секретный ключ Supabase. Его нельзя использовать на сайте: он даёт полный доступ к базе. Замените его на Publishable (anon) key и создайте новый секретный ключ в Supabase.'));return}
- if(!window.crypto||!crypto.subtle){box(h('p',{},'Этот браузер или адрес не поддерживает шифрование (нужен безопасный адрес https://). Откройте сайт по адресу https:// в современном браузере.'));return}
  if(RECOV){const pw=h('input',{type:'password',placeholder:'Новый пароль (не короче 8 символов)',autocomplete:'new-password'}),
-   go=async()=>{if(pw.value.length<8){gm('Пароль должен быть не короче 8 символов.');return}gm('Меняю пароль…');await wait(30);
-    try{await aReq('user',{password:await authPw(pw.value)},{method:'PUT',tok:RECOV.token});RECOV=null;GNOTE='Пароль изменён. Войдите с новым паролем. Чтобы открыть данные, понадобится ключ восстановления.';gateUI()}catch(e){gm(errMsg(e))}};
+   go=async()=>{if(pw.value.length<8){gm('Пароль должен быть не короче 8 символов.');return}gm('Меняю пароль…');
+    try{await aReq('user',{password:pw.value},{method:'PUT',tok:RECOV.token});RECOV=null;GNOTE='Пароль изменён. Войдите с новым паролем.';gateUI()}catch(e){gm(errMsg(e))}};
   pw.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
-  box(h('p',{},'Придумайте новый пароль. Он же шифрует данные, поэтому после входа сайт попросит ключ восстановления: так данные заново привяжутся к новому паролю.'),pw,gb('Сохранить пароль',go),h('p',{id:'gmsg'},''));return}
+  box(h('p',{},'Придумайте новый пароль для входа в аккаунт.'),pw,gb('Сохранить пароль',go),h('p',{id:'gmsg'},''));return}
  if(G.sess){box(h('p',{id:'gmsg'},note||'Подключаюсь к облаку…'),gb('Повторить',()=>{gm('Подключаюсь…');connect()}),gb('Войти в другой аккаунт',()=>{localStorage.removeItem(SK);G.sess=null;gateUI(true)},1),gb('Работать офлайн (данные сохранятся на устройстве)',()=>startOffline(),1));if(!retry)connect();return}
  authScreen('login',note)}
 function authScreen(mode,note){const g=document.getElementById('gate'),reg=mode==='reg',gb2=(l,f)=>h('button',{class:'gbtn',on:{click:f}},l),lk=(t,f)=>h('p',{class:'gnote'},h('a',{href:'#',on:{click:e=>{e.preventDefault();f(e)}}},t));
- const em=h('input',{type:'email',placeholder:'Почта',autocomplete:'username',name:'email'}),pw=h('input',{type:'password',name:'password',placeholder:reg?'Пароль (не короче 8 символов)':'Пароль',autocomplete:reg?'new-password':'current-password'}),msg=h('p',{id:'gmsg'},note||''),
-  rem=h('input',{type:'checkbox',checked:true}),remL=h('label',{class:'chk'},rem,'Запомнить на этом устройстве');
+ const em=h('input',{type:'email',placeholder:'Почта',autocomplete:'username',name:'email'}),pw=h('input',{type:'password',name:'password',placeholder:reg?'Пароль (не короче 8 символов)':'Пароль',autocomplete:reg?'new-password':'current-password'}),msg=h('p',{id:'gmsg'},note||'');
  const submit=async()=>{const email=em.value.trim().toLowerCase(),pass=pw.value;if(!email||!pass){gm('Введите почту и пароль.');return}
-  if(reg&&pass.length<8){gm('Пароль должен быть не короче 8 символов: он же шифрует ваши данные.');return}
-  G.remember=rem.checked;gm(reg?'Создаю аккаунт…':'Вхожу…');await wait(30);
-  try{const ap=await authPw(pass);
-   if(reg){const j=await aReq('signup',{email,password:ap});if(j&&j.access_token){G.pass=pass;setSess(j);gateUI()}else gm('Мы отправили письмо на '+email+'. Откройте его и подтвердите почту, потом нажмите «Войти».')}
-   else{const j=await aReq('token?grant_type=password',{email,password:ap});G.pass=pass;setSess(j);
-    gateUI()}}
+  if(reg&&pass.length<8){gm('Пароль должен быть не короче 8 символов.');return}
+  gm(reg?'Создаю аккаунт…':'Вхожу…');
+  try{if(reg){const j=await aReq('signup',{email,password:pass});if(j&&j.access_token){setSess(j);gateUI()}else gm('Мы отправили письмо на '+email+'. Откройте его и подтвердите почту, потом нажмите «Войти».')}
+   else{const j=await aReq('token?grant_type=password',{email,password:pass});setSess(j);gateUI()}}
   catch(e){gm(errMsg(e))}};
  [em,pw].forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter')submit()}));
  g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'📖 План книги'),
-  h('p',{},reg?'Создайте аккаунт. Один пароль и для входа, и для шифрования: сайт нигде его не хранит и в облако его не отправляет. Данные будут доступны с любого устройства в зашифрованном виде.':'Войдите в свой аккаунт, чтобы продолжить.'),
-  em,pw,remL,gb2(reg?'Зарегистрироваться':'Войти',submit),msg,
+  h('p',{},reg?'Создайте аккаунт: данные будут сохраняться в облаке и будут доступны с любого устройства.':'Войдите в свой аккаунт, чтобы продолжить.'),
+  em,pw,gb2(reg?'Зарегистрироваться':'Войти',submit),msg,
   lk(reg?'Уже есть аккаунт? Войти':'Нет аккаунта? Зарегистрироваться',()=>authScreen(reg?'login':'reg')),
   reg?'':lk('Забыли пароль?',async()=>{const email=em.value.trim();if(!email){gm('Введите почту, на неё придёт ссылка для смены пароля.');return}try{await aReq('recover?redirect_to='+enc(redirectUri()),{email});gm('Если такая почта зарегистрирована, мы отправили на неё ссылку для смены пароля.')}catch(x){gm(errMsg(x))}})))}
 async function signOut(){if(G.dirty&&conn())await pushNow();const still=G.dirty,uid=G.sess&&G.sess.uid;
- if(!still&&uid){await kvSet('state:'+uid,null).catch(()=>{});await kvDelPrefix('img:'+uid+':').catch(()=>{});await kvSet('pend:'+uid,null).catch(()=>{})}else toast('Часть правок не отправлена: она останется на этом устройстве (в зашифрованном виде) до следующего входа.');
- if(uid)await kvSet('ck:'+uid,null).catch(()=>{});
+ if(!still&&uid){await kvSet('state:'+uid,null).catch(()=>{});await kvDelPrefix('img:'+uid+':').catch(()=>{});await kvSet('pend:'+uid,null).catch(()=>{})}else toast('Часть правок не отправлена: она останется на этом устройстве до следующего входа.');
  try{if(G.sess)await aReq('logout',null,{tok:G.sess.access})}catch(e){}
  Object.values(IMGU).forEach(u=>{try{URL.revokeObjectURL(u)}catch(e){}});for(const k in IMGU)delete IMGU[k];
- localStorage.removeItem(SK);G.sess=null;G.ready=false;G.base=null;G.dirty=false;G.dek=null;G.meta=null;G.pass=null;G.pend=new Set();S.tabs=defaultTabs();S.active=0;render();closeModal();updBk();gateUI(true)}
+ localStorage.removeItem(SK);G.sess=null;G.ready=false;G.base=null;G.dirty=false;G.pend=new Set();S.tabs=defaultTabs();S.active=0;render();closeModal();updBk();gateUI(true)}
 /* ---- файлы: восстановить ---- */
 async function restoreFrom(t){let o;try{o=JSON.parse(t)}catch(e){bsay('Это не файл копии: не удалось разобрать содержимое.');return}
  if(!o||!Array.isArray(o.tabs)||!o.tabs.length||!o.tabs.every(x=>x&&typeof x.name==='string'&&Array.isArray(x.blocks))){bsay('В файле нет данных этого сайта.');return}
  const fix=bl=>bl.forEach(b=>{b.id=b.id||uid();if(b.items)fix(b.items)});o.tabs.forEach(x=>fix(x.blocks));
- if(G.dek&&G.sess)await storeInline(o.tabs);
+ if(G.sess)await storeInline(o.tabs);
  S.tabs=o.tabs;S.active=0;MM=null;upd();bsay('Данные восстановлены. Если это ошибка, нажмите ↶ на верхней панели.')}
 const fr=h('input',{type:'file',accept:'.json,application/json',hidden:true});document.body.append(fr);
 fr.onchange=()=>{const f=fr.files[0];fr.value='';if(f)f.text().then(restoreFrom).catch(()=>bsay('Не удалось прочитать файл.'))};
-/* ---- смена пароля (меняется и вход, и ключ шифрования) ---- */
+/* ---- смена пароля и почты ---- */
+async function checkPass(p){try{await aReq('token?grant_type=password',{email:G.sess.email,password:p})}catch(e){if(e&&(e.http===400||e.code==='invalid_credentials'))throw{msg:'Текущий пароль неверен.'};throw e}}
 function changePassScreen(){const g=document.getElementById('gate');g.style.display='flex';const pw=ph=>h('input',{type:'password',placeholder:ph,autocomplete:'off'}),o=pw('Текущий пароль'),a=pw('Новый пароль (не короче 8 символов)'),b=pw('Повторите новый пароль');
- const go=async()=>{if(a.value.length<8){gm('Новый пароль должен быть не короче 8 символов.');return}if(a.value!==b.value){gm('Пароли не совпадают.');return}gm('Меняю…');await wait(30);
-  try{await ensureTok();if(!await passOk(G.meta,o.value))throw{msg:'Текущий пароль неверен.'};
-   await aReq('user',{password:await authPw(a.value)},{method:'PUT',tok:G.sess.access});
-   await changePass(o.value,a.value);G.pass=a.value;G.dirty=true;g.style.display='none';await saveLocal();pushNow();toast('Пароль изменён')}catch(e){gm((e&&e.msg)||errMsg(e))}};
- g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'🔐 Смена пароля'),h('p',{},'Меняется пароль для входа и для шифрования. Сами данные не перешифровываются: меняется только то, чем открывается ключ. Ключ восстановления остаётся прежним.'),o,a,b,h('button',{class:'gbtn',on:{click:go}},'Сменить пароль'),h('button',{class:'gbtn s',on:{click:()=>{g.style.display='none'}}},'Отмена'),h('p',{id:'gmsg'},'')))}
-/* ---- смена почты (пароль для входа от почты не зависит, поэтому вход не ломается) ---- */
+ const go=async()=>{if(a.value.length<8){gm('Новый пароль должен быть не короче 8 символов.');return}if(a.value!==b.value){gm('Пароли не совпадают.');return}gm('Меняю…');
+  try{await checkPass(o.value);await ensureTok();await aReq('user',{password:a.value},{method:'PUT',tok:G.sess.access});g.style.display='none';toast('Пароль изменён')}catch(e){gm((e&&e.msg)||errMsg(e))}};
+ [o,a,b].forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter')go()}));
+ g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'🔐 Смена пароля'),o,a,b,h('button',{class:'gbtn',on:{click:go}},'Сменить пароль'),h('button',{class:'gbtn s',on:{click:()=>{g.style.display='none'}}},'Отмена'),h('p',{id:'gmsg'},'')))}
 function changeEmailScreen(){const g=document.getElementById('gate');g.style.display='flex';
  const ei=h('input',{type:'email',placeholder:'Новая почта',autocomplete:'off'}),o=h('input',{type:'password',placeholder:'Пароль от аккаунта (для проверки)',autocomplete:'off'});
- const go=async()=>{const ne=ei.value.trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ne)){gm('Введите почту полностью, например name@mail.ru.');return}if(ne===String(G.sess.email||'').toLowerCase()){gm('Это уже ваша текущая почта.');return}gm('Проверяю…');await wait(30);
-  try{if(!await passOk(G.meta,o.value))throw{msg:'Пароль неверен.'};await ensureTok();await aReq('user',{email:ne},{method:'PUT',tok:G.sess.access});
-   g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'✉️ Подтвердите новую почту'),h('p',{},'Мы отправили письмо со ссылкой на '+ne+'. Перейдите по ней, чтобы завершить смену. Если придёт письмо и на старую почту, подтвердите и его. Пока адрес не подтверждён, входите со старой почтой. Пароль и данные не меняются.'),h('button',{class:'gbtn',on:{click:()=>{g.style.display='none'}}},'Понятно')))}
+ const go=async()=>{const ne=ei.value.trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ne)){gm('Введите почту полностью, например name@mail.ru.');return}if(ne===String(G.sess.email||'').toLowerCase()){gm('Это уже ваша текущая почта.');return}gm('Проверяю…');
+  try{await checkPass(o.value);await ensureTok();await aReq('user',{email:ne},{method:'PUT',tok:G.sess.access});
+   g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'✉️ Подтвердите новую почту'),h('p',{},'Мы отправили письмо со ссылкой на '+ne+'. Перейдите по ней, чтобы завершить смену. Если придёт письмо и на старую почту, подтвердите и его. Пока адрес не подтверждён, входите со старой почтой.'),h('button',{class:'gbtn',on:{click:()=>{g.style.display='none'}}},'Понятно')))}
   catch(e){gm((e&&e.msg)||errMsg(e))}};
  [ei,o].forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter')go()}));
  g.replaceChildren(h('div',{class:'gbox'},h('h2',{},'✉️ Смена почты'),h('p',{},'Текущая почта: '+(G.sess.email||'—')),ei,o,h('button',{class:'gbtn',on:{click:go}},'Сменить почту'),h('button',{class:'gbtn s',on:{click:()=>{g.style.display='none'}}},'Отмена'),h('p',{id:'gmsg'},'')))}
@@ -764,11 +703,10 @@ async function diag(say){const out=[];
  const step=async(l,f)=>{try{const v=await f();line(true,l,v);return true}catch(e){line(false,l,bad(e));return false}};
  if(!await step('Адрес и ключ проекта',async()=>{const r=await tfetch(G.url+'/auth/v1/settings',{headers:{apikey:G.key}},25000);if(!r.ok)throw{http:r.status};const j=await r.json();return 'проект отвечает; подтверждение почты '+(j.mailer_autoconfirm?'выключено':'включено')+', регистрация '+(j.disable_signup?'закрыта':'открыта')}))return;
  if(!await step('Вход в аккаунт',async()=>{await ensureTok();return G.sess.email||'выполнен'}))return;
- await step('Шифрование',async()=>{if(!window.crypto||!crypto.subtle)throw{msg:'WebCrypto недоступен'};if(!G.dek)throw{msg:'ключ не загружен'};const t=await decBytes(await encBytes(new TextEncoder().encode('проверка')));if(new TextDecoder().decode(t)!=='проверка')throw{msg:'расшифровка не совпала'};return 'ключ загружен, шифрование работает'});
  if(!await step('Таблица данных',async()=>{const r=await(await rest('plan_data?select=version&user_id=eq.'+G.sess.uid)).json();return r.length?'ваша запись есть (версия '+r[0].version+')':'таблица есть, ваших данных ещё нет'}))return;
  await step('Запись в таблицу',async()=>{const r=await(await rest('plan_data?user_id=eq.'+G.sess.uid,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({updated_at:new Date().toISOString()})})).json();return r.length?'разрешена':'пропущено: данных ещё нет'});
  await step('Хранилище изображений',async()=>{const r=await sto('object/list/plan-images',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:G.sess.uid,limit:1,offset:0})});if(r.status===404)throw{msg:'хранилища plan-images нет: выполните обновлённый SQL'};if(!r.ok)throw{http:r.status};return 'доступно'});
- out.push('');out.push(out.some(x=>x.startsWith('✗'))?'Есть ошибки. Покажите этот текст тому, кто помогает с сайтом.':'Всё работает: данные и изображения сохраняются в облаке в зашифрованном виде.');say(out.join('\n'))}
+ out.push('');out.push(out.some(x=>x.startsWith('✗'))?'Есть ошибки. Покажите этот текст тому, кто помогает с сайтом.':'Всё работает: данные и изображения сохраняются в облаке.');say(out.join('\n'))}
 /* ---- окно «Аккаунт» ---- */
 /* ---- ⚙ Настройки: оформление, аккаунт, данные и облако ---- */
 function openSettings(){const st=h('p',{id:'bst'},''),info=h('p',{id:'gst',class:'sett-note'},''),pre=h('pre',{class:'gpre'});bsay=m=>{st.textContent=m};
@@ -785,7 +723,7 @@ function openSettings(){const st=h('p',{id:'bst'},''),info=h('p',{id:'gst',class
  else box.append(B('🔗 Войти или зарегистрироваться',()=>{closeModal();gateUI(true)}));
  /* данные и облако */
  box.append(h('div',{class:'mh'},'Данные и облако'),info);
- const copyFile=B('⬇ Скачать копию (.json, без шифрования)',async()=>{bsay('Готовлю копию…');dl(await backupData(),'копия');bsay('Файл скачан. Он не зашифрован: храните его в надёжном месте.')});
+ const copyFile=B('⬇ Скачать копию (.json)',async()=>{bsay('Готовлю копию…');dl(await backupData(),'копия');bsay('Файл скачан. Храните его в надёжном месте.')});
  if(G.ready&&conn()){
   if(G.err==='conflict')box.append(B('⬇ Скачать мою версию и загрузить версию из облака',act(async()=>{dl(await backupData(),'моя-версия');const row=await pull(),o=await openRow(row);G.base=row.version;startApp(o.tabs,false);bsay('Загружена версия из облака.')})),B('Перезаписать облако моей версией',act(async()=>{G.force=true;G.err='';G.dirty=true;await pushNow()})));
   if(G.err==='auth')box.append(B('🔑 Войти снова',()=>{closeModal();localStorage.removeItem(SK);G.sess=null;G.ready=false;gateUI(true)}));
