@@ -79,6 +79,9 @@ mark{background:rgba(240,180,0,.35);color:inherit;border-radius:3px}
 .gbtn.s{background:var(--acbg);color:var(--tx);border:1px solid var(--ac)}
 #gmsg{color:var(--mut);font-size:14px;min-height:1.4em}
 .gnote{color:var(--mut);font-size:13px}
+.gbox a{color:var(--ac);font-size:15px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.gbox a:hover{filter:brightness(1.15)}
+.szin{width:64px;height:32px;font:inherit;font-size:14px;padding:0 6px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)}
 .gbox textarea{width:100%;height:150px;font:12px/1.4 ui-monospace,Consolas,monospace;padding:8px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx)}
 .gbox details{margin:10px 0;border:1px solid var(--bd);border-radius:10px;padding:8px 12px;background:var(--card)}
 label.chk{display:flex;gap:6px;align-items:center;margin:10px 0;font-size:14px}
@@ -231,9 +234,9 @@ body.read .irs,body.mm .irs{display:none}
 <div id="toast"></div>
 <div id="modal"></div>
 <script>
-const UIK='plan-knigi-ui';let S,UI={};
+const UIK='plan-knigi-ui';let S,UI={};const TABQ=/[#&]tab=(\d+)/.exec(location.hash),W2=!!TABQ;let W2done=false;
 try{UI=JSON.parse(localStorage.getItem(UIK))||{}}catch(e){}
-S={v:2,active:Number(UI.active)||0,edit:UI.edit!==false,fmtOpen:!!UI.fmtOpen,tabs:[
+S={v:2,active:Number(UI.active)||0,edit:W2?false:UI.edit!==false,fmtOpen:!!UI.fmtOpen,tabs:[
 {name:'Сюжет',blocks:[{t:'h',lv:1,x:'Название книги'},{t:'p',x:'Коротко: о чём эта история?'},{t:'warn',y:'w',x:'Не забыть: связать завязку с финалом.'}]},
 {name:'Герои',blocks:[{t:'cards',cards:[{a:'Главный герой',b:'Цель, страх, характер…'},{a:'Антагонист',b:'Что им движет?'}]}]}]};
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -243,11 +246,28 @@ S.tabs.forEach(t=>t.blocks.forEach(b=>{b.id=b.id||uid()}));
 if(typeof S.edit!=='boolean')S.edit=true;
 if(S.active>=S.tabs.length)S.active=0;
 try{document.execCommand('defaultParagraphSeparator',false,'br')}catch(e){}
-const save=()=>{try{localStorage.setItem(UIK,JSON.stringify({active:S.active,edit:S.edit,fmtOpen:S.fmtOpen}))}catch(e){}};
+const save=()=>{if(W2)return;try{localStorage.setItem(UIK,JSON.stringify({active:S.active,edit:S.edit,fmtOpen:S.fmtOpen}))}catch(e){}};
 const upd=()=>{commit();save();render()};
 const h=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a){if(k==='on')for(const v in a.on)e.addEventListener(v,a.on[v]);else if(k in e)e[k]=a[k];else e.setAttribute(k,a[k])}c.flat().forEach(x=>e.append(x));return e};
 let tt;const toast=m=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2400)};
-const ed=(o,k,cls,ph,tag='div')=>{const e=h(tag,{class:'ed '+cls,contenteditable:S.edit?'true':'false','data-ph':ph,on:{input:()=>{if(!e.textContent.trim()&&!e.querySelector('ul,ol'))e.innerHTML='';o[k]=e.innerHTML;touch()},paste:ev=>{ev.preventDefault();document.execCommand('insertText',false,ev.clipboardData.getData('text/plain'))}}});e.innerHTML=san(o[k]);return e};
+/* копирование и вставка с сохранением форматирования (жирный, курсив, цвет, размер, списки) */
+const rgbOf=c=>{c=String(c||'').trim();let m=/^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/i.exec(c);if(m)return[+m[1],+m[2],+m[3]];m=/^#([0-9a-f]{6})$/i.exec(c);if(m){const n=parseInt(m[1],16);return[n>>16,(n>>8)&255,n&255]}m=/^#([0-9a-f]{3})$/i.exec(c);if(m){const t=m[1];return[17*parseInt(t[0],16),17*parseInt(t[1],16),17*parseInt(t[2],16)]}return null};
+function pasteClean(html){const d=new DOMParser().parseFromString(html,'text/html').body;
+ d.querySelectorAll('script,style,meta,link,title,head,img,svg').forEach(x=>x.remove());
+ d.querySelectorAll('b,strong').forEach(x=>{const w=(x.style.fontWeight||'').toLowerCase();if(w==='normal'||w==='400')x.replaceWith(...x.childNodes)});
+ d.querySelectorAll('[style]').forEach(x=>{const c=x.style.color;if(c){const m=rgbOf(c);if(/^(black|white|windowtext|canvastext|inherit|initial|currentcolor|unset)$/i.test(c.trim())||(m&&Math.max(...m)-Math.min(...m)<40))x.style.removeProperty('color')}
+  if(/^(16px|12pt|medium|1em|100%|inherit|initial|unset)$/i.test((x.style.fontSize||'').trim()))x.style.removeProperty('font-size')});
+ [...d.querySelectorAll('p,div,h1,h2,h3,h4,h5,h6,blockquote,pre,tr')].reverse().forEach(x=>x.replaceWith(...x.childNodes,document.createElement('br')));
+ let out=san(d.innerHTML).replace(/^(\s|<br\s*\/?>)+/i,'').replace(/(\s|<br\s*\/?>)+$/i,'').replace(/(<br\s*\/?>\s*){3,}/gi,'<br><br>');return out}
+function selHTML(e){const sel=getSelection();if(!sel.rangeCount)return'';const r=sel.getRangeAt(0);let f=r.cloneContents(),n=r.commonAncestorContainer;if(n.nodeType===3)n=n.parentNode;
+ while(n&&n!==e&&n.nodeType===1){const w=n.cloneNode(false);w.append(f);f=document.createDocumentFragment();f.append(w);n=n.parentNode}
+ const t=document.createElement('div');t.append(f);return t.innerHTML}
+function copyRich(ev,e,cut){const sel=getSelection();if(!sel.rangeCount||sel.isCollapsed||!ev.clipboardData)return;const html=selHTML(e);if(!html)return;
+ ev.clipboardData.setData('text/html',html);ev.clipboardData.setData('text/plain',sel.toString());ev.preventDefault();if(cut&&e.isContentEditable)document.execCommand('delete')}
+function pasteRich(ev){ev.preventDefault();const cd=ev.clipboardData;if(!cd)return;const html=cd.getData('text/html'),txt=cd.getData('text/plain');
+ if(html){const c=pasteClean(html);if(c.replace(/<[^>]*>/g,'').trim()){document.execCommand('insertHTML',false,c);return}}
+ document.execCommand('insertText',false,txt)}
+const ed=(o,k,cls,ph,tag='div')=>{const e=h(tag,{class:'ed '+cls,contenteditable:S.edit?'true':'false','data-ph':ph,on:{input:()=>{if(!e.textContent.trim()&&!e.querySelector('ul,ol'))e.innerHTML='';o[k]=e.innerHTML;touch()},paste:ev=>pasteRich(ev),copy:ev=>copyRich(ev,e,false),cut:ev=>copyRich(ev,e,true)}});e.innerHTML=san(o[k]);return e};
 const delBtn=(fn,l='✕')=>{const b=h('button',{class:'del',title:'Удалить'},l);let t;b.onclick=()=>{if(b.dataset.s){clearTimeout(t);fn()}else{b.dataset.s=1;b.textContent='Удалить?';b.classList.add('sure');t=setTimeout(()=>{delete b.dataset.s;b.textContent=l;b.classList.remove('sure')},2500)}};return b};
 const sel=(opts,val,fn)=>{const s=h('select',{on:{change:()=>fn(s.value)}},opts.map(([v,l])=>h('option',{value:v},l)));s.value=val;return s};
 const WT={w:['⚠️','Внимание'],r:['⛔','Важно'],i:['💡','Идея'],o:['✅','Готово']};
@@ -297,9 +317,10 @@ R.img=b=>{const wrap=h('div',{class:'iwrap'}),im=h('img',{alt:b.x?plain(b.x):'И
  hd.addEventListener('dblclick',()=>{b.iw=100;upd()});
  wrap.append(im,hd);return h('div',{class:'img'},wrap,ed(b,'x','cap','Подпись (необязательно)…'))};
 function renderMode(){if(!S.edit)MM=null;document.body.classList.toggle('mm',!!MM);document.body.classList.toggle('read',!S.edit);document.getElementById('mode').replaceChildren(...[[true,'✏️ Правка'],[false,'👁 Чтение']].map(([v,l])=>h('button',{class:'seg'+(S.edit===v?' on':''),on:{click:()=>{S.edit=v;upd()}}},l)))}
-function renderTabs(){const t=document.getElementById('tabs');t.replaceChildren();
+function openTabWin(i){const w=window.open(location.origin+location.pathname+location.search+'#tab='+i,'_blank');if(!w)toast('Браузер заблокировал новое окно: разрешите всплывающие окна для этого сайта')}
+function renderTabs(){const t=document.getElementById('tabs');t.replaceChildren();if(W2&&S.tabs[S.active])document.title=(S.tabs[S.active].name||'Вкладка')+' · План книги';
  S.tabs.forEach((tb,i)=>{const on=i===S.active;
-  const b=h('button',{class:'tab'+(on?' on':''),draggable:S.edit,title:S.edit?(on?'Двойной клик — переименовать. Перетащите, чтобы переставить':'Перетащите, чтобы переставить'):'',on:{click:()=>{if(!on){S.active=i;upd()}},dblclick:()=>{if(on&&S.edit)rename(b,tb)}}},tb.name||'Без названия');
+  const b=h('button',{class:'tab'+(on?' on':''),draggable:S.edit,title:(S.edit?(on?'Двойной клик — переименовать. Перетащите, чтобы переставить. ':'Перетащите, чтобы переставить. '):'')+'Колёсико мыши или Ctrl+клик — открыть в новом окне',on:{click:ev=>{if(ev.ctrlKey||ev.metaKey){openTabWin(i);return}if(!on){S.active=i;upd()}},auxclick:ev=>{if(ev.button===1){ev.preventDefault();openTabWin(i)}},mousedown:ev=>{if(ev.button===1)ev.preventDefault()},dblclick:()=>{if(on&&S.edit)rename(b,tb)}}},tb.name||'Без названия');
   tabDnd(b,i);t.append(b);
   if(on&&S.tabs.length>1)t.append(delBtn(()=>{S.tabs.splice(i,1);S.active=Math.max(0,i-1);upd()},'✕'))});
  t.append(h('button',{class:'tab new',title:'Новая вкладка',on:{click:()=>{S.tabs.push({name:'Новая вкладка',blocks:[{id:uid(),t:'p',x:''}]});S.active=S.tabs.length-1;upd()}}},'+'));const a=t.querySelector('.tab.on');if(a){const r=a.getBoundingClientRect(),c=t.getBoundingClientRect();if(r.bottom>c.bottom)t.scrollTop+=r.bottom-c.bottom;else if(r.top<c.top)t.scrollTop-=c.top-r.top}}
@@ -335,7 +356,7 @@ function unlink(){const e=curEd();if(!e){toast('Поставьте курсор 
  if(!l){toast('Поставьте курсор внутрь ссылки');return}l.replaceWith(...l.childNodes);fire(e)}
 const fm=document.getElementById('fp');
 const fw=document.getElementById('fmt'),ft=document.getElementById('ftog');
-fw.addEventListener('mousedown',e=>{if(e.target.type!=='color')e.preventDefault()});
+fw.addEventListener('mousedown',e=>{if(e.target.type!=='color'&&e.target.type!=='number')e.preventDefault()});
 const applyFmt=()=>{fw.classList.toggle('open',!!S.fmtOpen);ft.textContent='Aa Настройки текста '+(S.fmtOpen?'▴':'▾')};
 ft.onclick=()=>{S.fmtOpen=!S.fmtOpen;save();applyFmt()};applyFmt();
 const FB=(l,t,f)=>fm.append(h('button',{title:t,on:{click:f}},l));
@@ -344,12 +365,16 @@ FB(h('u',{},'Ч'),'Подчёркнутый',()=>fmt('underline'));FB(h('s',{},'
 fm.append(h('span',{class:'sp'}));
 fm.append(h('span',{class:'lbl'},'Размер, пт:'));
 [10,12,14,18,24,32].forEach(pt=>fm.append(h('button',{title:'Размер шрифта '+pt+' пт',on:{click:()=>size(pt+'pt')}},h('span',{style:'font-size:'+Math.round(8+pt*1.333*.4)+'px;line-height:1'},'A'),h('small',{},pt))));
+let lastSel=null;
+const szIn=h('input',{type:'number',class:'szin',min:6,max:120,step:1,placeholder:'свой',title:'Свой размер в пунктах (от 6 до 120): выделите текст, введите число и нажмите Enter'});
+const applySize=()=>{const v=parseFloat(szIn.value);if(!(v>=6&&v<=120)){toast('Введите размер от 6 до 120 пт');return}if(!lastSel){toast('Сначала выделите текст внутри блока');return}const{e,r}=lastSel;e.focus();const g=getSelection();g.removeAllRanges();g.addRange(r);size(v+'pt')};
+szIn.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();applySize()}});
+fm.append(szIn,h('button',{title:'Применить свой размер к выделенному тексту',on:{click:applySize}},'OK'));
 fm.append(h('span',{class:'sp'}));
 FB(h('span',{innerHTML:'<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><circle cx="3" cy="4" r="1.7"/><circle cx="3" cy="9" r="1.7"/><circle cx="3" cy="14" r="1.7"/><rect x="7" y="3" width="10" height="2" rx="1"/><rect x="7" y="8" width="10" height="2" rx="1"/><rect x="7" y="13" width="10" height="2" rx="1"/></svg>'}),'Маркированный список',()=>fmt('insertUnorderedList'));FB(h('span',{innerHTML:'<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><g font-family="sans-serif" font-size="6.5" font-weight="700"><text x="0" y="6">1</text><text x="0" y="11">2</text><text x="0" y="16">3</text></g><rect x="7" y="3" width="10" height="2" rx="1"/><rect x="7" y="8" width="10" height="2" rx="1"/><rect x="7" y="13" width="10" height="2" rx="1"/></svg>'}),'Нумерованный список',()=>fmt('insertOrderedList'));
 fm.append(h('span',{class:'sp'}));
 FB(h('span',{innerHTML:'<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="1" y="3" width="16" height="2" rx="1"/><rect x="1" y="8" width="10" height="2" rx="1"/><rect x="1" y="13" width="14" height="2" rx="1"/></svg>'}),'По левому краю',()=>fmt('justifyLeft'));FB(h('span',{innerHTML:'<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="1" y="3" width="16" height="2" rx="1"/><rect x="4" y="8" width="10" height="2" rx="1"/><rect x="2" y="13" width="14" height="2" rx="1"/></svg>'}),'По центру',()=>fmt('justifyCenter'));FB(h('span',{innerHTML:'<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="1" y="3" width="16" height="2" rx="1"/><rect x="7" y="8" width="10" height="2" rx="1"/><rect x="3" y="13" width="14" height="2" rx="1"/></svg>'}),'По правому краю',()=>fmt('justifyRight'));
 fm.append(h('span',{class:'sp'}));
-let lastSel=null;
 document.addEventListener('selectionchange',()=>{const e=curEd();if(e)lastSel={e,r:getSelection().getRangeAt(0).cloneRange()}});
 const applyColor=col=>{if(!lastSel){toast('Сначала выделите текст внутри блока');return}const{e,r}=lastSel;e.focus();const g=getSelection();g.removeAllRanges();g.addRange(r);fmt('foreColor',col)};
 const cr=h('div',{class:'crow'},h('span',{class:'lbl'},'Цвет текста:'));fm.append(cr);
@@ -608,7 +633,7 @@ function updBk(){const b=document.getElementById('bk');if(!b)return;
 window.addEventListener('beforeunload',e=>{if(G.ready&&conn()&&G.dirty){e.preventDefault();e.returnValue=''}});
 /* ---- запуск после входа ---- */
 function startApp(tabs,pushFlag){const fix=bl=>bl.forEach(b=>{b.id=b.id||uid();if(b.items)fix(b.items)});tabs.forEach(t=>fix(t.blocks));
- S.tabs=tabs;S.active=Math.max(0,Math.min(S.active,tabs.length-1));G.ready=true;G.dirty=!!pushFlag;G.err='';
+ S.tabs=tabs;S.active=Math.max(0,Math.min(W2&&!W2done?(W2done=true,+TABQ[1]):S.active,tabs.length-1));G.ready=true;G.dirty=!!pushFlag;G.err='';
  H.u=[];H.r=[];H.cur=snapS();H.cs=strip(H.cur);MM=null;updHist();document.getElementById('gate').style.display='none';render();updBk();saveLocal();q.value='';
  if(pushFlag)pushNow();if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}
 const gm=t=>{const m=document.getElementById('gmsg');if(m)m.textContent=t};
