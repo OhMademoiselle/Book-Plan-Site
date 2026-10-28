@@ -58,6 +58,11 @@ tr.dr-b td{box-shadow:inset 0 3px 0 0 var(--ac)}tr.dr-a td{box-shadow:inset 0 -3
 td:first-child .ed{padding-left:20px}
 .tab.dr-b{box-shadow:-3px 0 0 var(--ac)}.tab.dr-a{box-shadow:3px 0 0 var(--ac)}
 button.tab.on{cursor:default}
+#bk{font:inherit;font-size:13px;padding:4px 12px;border-radius:999px;border:1px solid var(--bd);background:transparent;color:var(--mut);cursor:pointer;white-space:nowrap}
+#bk[data-s=ok]{color:#2f9e5b;border-color:#2f9e5b66}
+#bk[data-s=wait]{color:#c98a12;border-color:#c98a1266}
+#bk[data-s=bad]{color:#d9534f;border-color:#d9534f88;font-weight:600}
+#st{border:1px solid var(--bd);border-radius:10px}
 .sr{position:relative;flex:1;min-width:140px;max-width:320px}
 #q{width:100%;font:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx)}
 #sres{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;max-height:60vh;overflow:auto;background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);z-index:15;min-width:260px}
@@ -217,7 +222,7 @@ body.read .irs,body.mm .irs{display:none}
 </style>
 </head>
 <body>
-<header><h1>📖 План книги</h1><div class="sr"><input id="q" type="search" name="plan-search" placeholder="🔍 Поиск по сайту…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other"><div id="sres"></div></div><button id="bk" class="seg" title="Состояние облака (откроются настройки)">☁ Копия</button><button id="st" class="seg" type="button" title="Настройки" aria-label="Настройки">⚙ Настройки</button><div id="mode"></div></header>
+<header><h1>📖 План книги</h1><div class="sr"><input id="q" type="search" name="plan-search" placeholder="🔍 Поиск по сайту…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other"><div id="sres"></div></div><button id="bk" type="button" title="Состояние сохранения. Нажмите, чтобы сохранить сейчас">● Сохранено</button><button id="st" class="seg" type="button" title="Настройки" aria-label="Настройки">⚙ Настройки</button><div id="mode"></div></header>
 <div id="tabs"></div>
 <div id="fmt"><span class="pw"><button id="plus" type="button" title="Добавить блок">+</button><div id="pp"></div></span><button id="ftog" type="button"></button><div id="fp"></div></div>
 <main id="main"></main>
@@ -597,7 +602,8 @@ async function pushNow(){clearTimeout(G.timer);if(!G.ready||!conn()||!G.dirty||G
  G.pushing=false;updBk();if(G.dirty&&!G.err&&!G.offline)schedPush()}
 function statusText(){return !conn()?'вы не вошли в аккаунт: данные хранятся только на этом устройстве':G.err==='auth'?'нужно войти снова (правки пока сохранены в этом браузере)':G.offline?'нет связи с облаком — правки сохраняются на этом устройстве и отправятся, когда связь появится':G.pushing?'сохраняю…':G.err==='conflict'?'в облаке другая версия данных — выберите, какую оставить':G.err?G.err:G.dirty?'есть несохранённые правки, отправлю через несколько секунд':'всё сохранено'+(G.at?' · '+fmtT(G.at):'')}
 function updBk(){const b=document.getElementById('bk');if(!b)return;
- b.textContent='☁'+(!G.ready?' Аккаунт':!conn()?' Не вошли':G.err==='auth'?' ⚠ Войдите снова':G.offline?' Офлайн':G.pushing?' Сохраняю…':G.err==='conflict'?' ⚠ Конфликт':G.err?' ⚠ Ошибка':G.dirty?' Не сохранено':' Сохранено ✓');
+ const st=!G.ready?['off','Аккаунт']:!conn()?['off','Не вошли']:G.err==='auth'?['bad','Войдите снова']:G.offline?['wait','Офлайн']:G.pushing?['wait','Сохраняю…']:G.err==='conflict'?['bad','Конфликт версий']:G.err?['bad','Ошибка сохранения']:G.dirty?['wait','Не сохранено']:['ok','Сохранено'];
+ b.textContent='● '+st[1];b.dataset.s=st[0];
  b.title=G.ready?(G.sess&&G.sess.email?G.sess.email+': ':'')+statusText():'Аккаунт'}
 window.addEventListener('beforeunload',e=>{if(G.ready&&conn()&&G.dirty){e.preventDefault();e.returnValue=''}});
 /* ---- запуск после входа ---- */
@@ -735,7 +741,9 @@ function openSettings(){const st=h('p',{id:'bst'},''),info=h('p',{id:'gst',class
  }else box.append(copyFile,B('⬆ Восстановить из файла…',()=>fr.click()));
  box.append(st,h('p',{class:'gnote'},'Автоматических резервных копий в облаке нет, поэтому изредка скачивайте файл копии.'),h('button',{class:'add',on:{click:closeModal}},'Закрыть'));
  modal.replaceChildren(box);modal.classList.add('on');refresh()}
-document.getElementById('bk').onclick=()=>{if(G.ready)openSettings()};
+document.getElementById('bk').onclick=async()=>{if(!G.ready)return;
+ if(!conn()||G.err||G.pushing){if(!G.pushing)openSettings();return}
+ G.dirty=true;await pushNow();toast(G.err==='conflict'?'В облаке другая версия: откройте ⚙ Настройки':G.err?'Не удалось сохранить: '+statusText():G.offline?'Нет связи: сохраню, когда появится':'Сохранено ✓')};
 /* ячейки таблиц: выделение диапазона, копирование и вставка */
 let CS=null,CLIP=null,CDRAG=null,ANCH=null,TCNT=1;
 const plural=(n,f)=>{const a=n%10,b=n%100;return a===1&&b!==11?f[0]:a>=2&&a<=4&&(b<10||b>=20)?f[1]:f[2]};
