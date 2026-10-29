@@ -57,6 +57,28 @@ header h1.logo{font-size:23px}
 .bkm .bf button{flex:1;font:inherit;padding:8px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
 .bkm .bf button.go{background:var(--ac);color:var(--onac,#fff);border-color:var(--ac)}
 .bkm .bf button.dng{background:#d9534f;color:#fff;border-color:#d9534f}
+#tour{position:fixed;inset:0;z-index:90}
+#tour .ts{position:absolute;inset:0}
+#tour.c .ts{background:rgba(0,0,0,.58)}
+#tour .th{position:absolute;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.58),0 0 0 3px var(--ac);transition:all .25s;pointer-events:none}
+#tour.c .th{display:none}
+#tour .tc{position:absolute;width:min(360px,calc(100vw - 24px));box-sizing:border-box;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:16px;padding:18px 18px 14px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+#tour.c .tc{left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 24px));padding:26px 24px 18px;text-align:center}
+#tour .tc h4{margin:0 0 8px;font-size:19px}
+#tour.c .tc h4{font-size:23px}
+#tour .tc p{margin:0 0 14px;font-size:15.5px;line-height:1.55}
+#tour .tp{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut);margin-bottom:12px}
+#tour.c .tp{justify-content:center}
+#tour .tdots{display:flex;gap:4px}
+#tour .tdots i{width:7px;height:7px;border-radius:50%;background:var(--bd)}
+#tour .tdots i.on{background:var(--ac)}
+#tour .tbtns{display:flex;gap:8px;align-items:center}
+#tour.c .tbtns{justify-content:center;flex-direction:column-reverse;gap:6px}
+#tour .tbtns .sk{margin-right:auto;border:none;background:transparent;color:var(--mut);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:6px 4px}
+#tour.c .tbtns .sk{margin:0}
+#tour .tbtns .b,#tour .tbtns .n{font:inherit;font-size:15px;padding:9px 16px;border-radius:10px;cursor:pointer;border:1px solid var(--bd);background:var(--card);color:var(--tx)}
+#tour .tbtns .n{background:var(--ac);color:var(--onac,#fff);border-color:var(--ac);font-weight:600}
+#tour.c .tbtns .n{padding:12px 28px;font-size:17px}
 .box.big{max-width:580px;text-align:center;padding:30px 26px}
 .bigem{font-size:60px;line-height:1;margin-bottom:6px}
 .box.big h3{font-size:25px;margin:6px 0 12px}
@@ -287,7 +309,7 @@ body.read .irs,body.mm .irs{display:none}
 <div id="toast"></div>
 <div id="modal"></div>
 <script>
-const UIK='plan-knigi-ui';let S,UI={};const TABQ=/[#&]tab=(\d+)/.exec(location.hash),BOOKQ=/[#&]book=([\w-]+)/.exec(location.hash),W2=!!TABQ;let W2done=false;
+const UIK='plan-knigi-ui';let S,UI={};const TABQ=/[#&]tab=(\d+)/.exec(location.hash),BOOKQ=/[#&]book=([\w-]+)/.exec(location.hash),BLOCKQ=/[#&]block=([\w-]+)/.exec(location.hash),W2=!!TABQ;let W2blk=false;let W2done=false;
 try{UI=JSON.parse(localStorage.getItem(UIK))||{}}catch(e){}
 S={v:2,active:Number(UI.active)||0,edit:W2?false:UI.edit!==false,fmtOpen:!!UI.fmtOpen,tabs:[
 {name:'Сюжет',blocks:[{t:'h',lv:1,x:'Название книги'},{t:'p',x:'Коротко: о чём эта история?'},{t:'warn',y:'w',x:'Не забыть: связать завязку с финалом.'}]},
@@ -510,8 +532,16 @@ function go(id){let ti=-1,anc=[];S.tabs.forEach((t,i)=>{const r=find(t.blocks,id
  anc.forEach(g=>g.c=false);
  if(S.active!==ti||anc.length){S.active=ti;upd()}
  const el=document.querySelector('[data-id="'+id+'"]');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}
-document.getElementById('main').addEventListener('click',ev=>{const a=ev.target.closest('a[data-b]');if(!a)return;
- if(S.edit&&!(ev.ctrlKey||ev.metaKey))return;ev.preventDefault();go(a.dataset.b)});
+function openBlockWin(id){let ti=-1;S.tabs.forEach((t,i)=>{if(find(t.blocks,id))ti=i});if(ti<0){toast('Блок, на который вела ссылка, удалён');return}
+ const w=window.open(location.origin+location.pathname+location.search+'#tab='+ti+'&book='+S.bk+'&block='+id,'_blank');if(!w)toast('Браузер заблокировал новое окно: разрешите всплывающие окна для этого сайта')}
+{const mn=document.getElementById('main'),lnk=ev=>ev.target&&ev.target.closest&&ev.target.closest('a[data-b]');
+ mn.addEventListener('click',ev=>{const a=lnk(ev);if(!a)return;
+  if(ev.shiftKey){ev.preventDefault();openBlockWin(a.dataset.b);return}
+  if(S.edit&&!(ev.ctrlKey||ev.metaKey))return;ev.preventDefault();go(a.dataset.b)});
+ mn.addEventListener('auxclick',ev=>{if(ev.button!==1)return;const a=lnk(ev);if(!a)return;ev.preventDefault();openBlockWin(a.dataset.b)});
+ mn.addEventListener('mousedown',ev=>{if(ev.button===1&&lnk(ev))ev.preventDefault()});
+ mn.addEventListener('mouseover',ev=>{const a=lnk(ev);if(a&&!a.hasAttribute('title'))a.setAttribute('title',(S.edit?'Ctrl+клик — перейти к блоку':'Клик — перейти к блоку')+'. Колёсико мыши или Shift+клик — открыть в новом окне')});
+ mn.addEventListener('mouseout',ev=>{const a=lnk(ev);if(a)a.removeAttribute('title')})}
 /* вставка изображений */
 async function addImg(f){if(!G.sess){toast('Сначала войдите в аккаунт.');return}toast('Обрабатываю изображение…');
  try{const r=await imgStoreNew(f);S.tabs[S.active].blocks.push({id:uid(),t:'img',src:r.name,ar:r.ar,iw:100,x:''});upd();window.scrollTo(0,document.body.scrollHeight)}catch(e){toast((e&&e.msg)||'Не удалось добавить изображение')}}
@@ -637,6 +667,52 @@ function dl(data,tag,ext,type){const a=document.createElement('a');a.href=URL.cr
 const redirectUri=()=>location.origin+location.pathname.replace(/index\.html$/,'');
 const cfg=()=>{G.url=SUPABASE_URL.trim().replace(/\/+$/,'').replace(/\/(rest|auth)\/v1$/,'');G.key=SUPABASE_KEY.trim()};
 const keyBad=k=>{if(/^sb_secret_/.test(k))return true;try{const p=JSON.parse(atob(k.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));return p.role==='service_role'}catch(e){return false}};
+/* ---- обучение для новичков (пошаговый тур; можно пропустить и запустить заново в настройках) ---- */
+let TOUR=null,TOUR_DELAY=1200,TOUR_TIMER=null;
+const TOUR_STEPS=[
+ {t:'Добро пожаловать! 👋',x:'Это планировщик вашей книги: сюжет, герои, главы и заметки в одном месте. Покажу за минуту, как тут всё устроено. Обучение можно пропустить и запустить снова в «⚙ Настройки».',c:1},
+ {sel:'#bkc',t:'Ваши книги',x:'У каждой книги свои вкладки и свои записи. Здесь можно создать новую книгу, переименовать или удалить её и переключиться между книгами.'},
+ {sel:'#tabs',t:'Вкладки',x:'Вкладки — это разделы книги: «Сюжет», «Герои» и любые другие. Нажмите, чтобы открыть. Двойной клик по открытой вкладке переименует её, а «+» в конце добавит новую. Колёсико мыши на вкладке откроет её в отдельном окне.'},
+ {sel:'#mode',t:'Правка и чтение',x:'В режиме «Правка» можно менять текст и блоки. «Чтение» — только просмотр: так ничего не удалится случайно.'},
+ {sel:'#plus',pp:1,t:'Добавляйте блоки',x:'Кнопка «+» добавляет блок: заголовок, текст, таблицу, плашку для важных заметок, карточки (например, для героев) или изображение.'},
+ {sel:'#ftog',t:'Оформление текста',x:'Здесь жирный и курсив, шрифт, размер, цвет, списки. Шрифт и размер можно выбрать ещё до того, как начнёте печатать. Ошиблись? Ctrl+Z вернёт действие назад.'},
+ {sel:'#main',t:'Ваши записи',x:'Каждый блок — отдельный кусочек плана. Нажмите на текст, чтобы писать. За значок ⠿ блок можно перетащить и поменять порядок.'},
+ {sel:'.sr',t:'Поиск',x:'Поиск ищет по всем вкладкам открытой книги: введите слово, и сайт покажет, где оно встречается.'},
+ {sel:'#bk',t:'Сохранение',x:'Правки сохраняются в облако сами. Зелёный «Сохранено» значит, что всё в порядке. Нажмите на него, чтобы сохранить прямо сейчас.'},
+ {sel:'#st',t:'Настройки',x:'Здесь темы оформления, смена пароля и почты, файл с резервной копией и кнопка, чтобы пройти это обучение заново.'},
+ {t:'Готово! 🎉',x:'Совет: раз в пару недель скачивайте файл-копию (⚙ Настройки → Данные и облако). Сайт сам напомнит об этом. Приятной работы над книгой!',c:1}];
+const tourKey=()=>'plan-knigi-tour:'+((G.sess&&G.sess.uid)||'anon');
+const tourDone=()=>{try{return !!JSON.parse(localStorage.getItem(tourKey())||'null')}catch(e){return false}};
+const tourMark=skipped=>{try{localStorage.setItem(tourKey(),JSON.stringify({done:Date.now(),skipped:!!skipped}))}catch(e){}};
+const tourRect=st=>{const el=document.querySelector(st.sel);if(!el)return null;let r=el.getBoundingClientRect();if(!(r.width>0&&r.height>0))return null;
+ if(st.pp){const p=document.getElementById('pp');if(p&&p.classList.contains('open')){const q=p.getBoundingClientRect();if(q.width>0)r={left:Math.min(r.left,q.left),top:Math.min(r.top,q.top),right:Math.max(r.right,q.right),bottom:Math.max(r.bottom,q.bottom)}}}
+ return{left:r.left,top:r.top,width:(r.right!=null?r.right-r.left:r.width),height:(r.bottom!=null?r.bottom-r.top:r.height)}};
+function endTour(skipped,mark){if(!TOUR)return;const T=TOUR;TOUR=null;document.removeEventListener('keydown',T.key,true);window.removeEventListener('resize',T.place);window.removeEventListener('scroll',T.place,true);T.root.remove();const p=document.getElementById('pp');if(p)p.classList.remove('open');if(mark!==false)tourMark(skipped)}
+function startTour(){if(TOUR)endTour(true,false);
+ const steps=TOUR_STEPS.filter(st=>st.c||document.querySelector(st.sel)&&tourRect({sel:st.sel}));if(steps.length<3)return;
+ const root=h('div',{id:'tour',role:'dialog','aria-live':'polite'}),hole=h('div',{class:'th'}),card=h('div',{class:'tc'}),shield=h('div',{class:'ts'});root.append(shield,hole,card);root.addEventListener('click',e=>e.stopPropagation());document.body.append(root);
+ const T={i:0,root};TOUR=T;
+ const go=d=>{const n=T.i+d;if(n<0)return;if(n>=steps.length){endTour(false);return}T.i=n;show()};
+ const place=()=>{const st=steps[T.i];if(!st||TOUR!==T)return;root.classList.toggle('c',!!st.c);if(st.c)return;
+  const r=tourRect(st);if(!r){return}const vw=innerWidth,vh=innerHeight,pad=6;
+  const top=Math.max(0,r.top-pad),bot=Math.min(vh,r.top+r.height+pad);hole.style.left=Math.max(0,r.left-pad)+'px';hole.style.top=top+'px';hole.style.width=Math.min(vw,r.width+2*pad)+'px';hole.style.height=Math.max(10,bot-top)+'px';
+  const w=card.offsetWidth||360,ch=card.offsetHeight||180;let y;
+  if(r.height>vh*.55)y=vh-ch-14;else if(r.top+r.height+ch+18<vh)y=r.top+r.height+pad+10;else if(r.top-ch-18>0)y=r.top-ch-pad-10;else y=Math.max(12,vh-ch-12);
+  card.style.top=Math.max(8,y)+'px';card.style.left=Math.min(Math.max(12,r.left+r.width/2-w/2),Math.max(12,vw-w-12))+'px'};
+ T.place=place;
+ const show=()=>{const st=steps[T.i],last=T.i===steps.length-1,first=T.i===0;
+  const p=document.getElementById('pp');if(p)p.classList.remove('open');
+  if(st.pp&&p)p.classList.add('open');
+  card.replaceChildren(h('h4',{},st.t),h('p',{},st.x),
+   h('div',{class:'tp'},h('span',{},'Шаг '+(T.i+1)+' из '+steps.length),h('span',{class:'tdots'},...steps.map((_,k)=>h('i',{class:k===T.i?'on':''})))),
+   h('div',{class:'tbtns'},...(last?[]:[h('button',{type:'button',class:'sk',on:{click:()=>endTour(true)}},'Пропустить обучение')]),...(first||last&&false?[]:[h('button',{type:'button',class:'b',on:{click:()=>go(-1)}},'← Назад')]),h('button',{type:'button',class:'n',on:{click:()=>go(1)}},first?'Начать тур':last?'Готово':'Далее →')));
+  if(!st.c){const el=document.querySelector(st.sel);if(el&&el.scrollIntoView)try{el.scrollIntoView({block:'nearest'})}catch(e){}}
+  place();setTimeout(place,60);setTimeout(place,300)};
+ T.key=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();endTour(true)}else if(e.key==='ArrowRight'){e.preventDefault();go(1)}else if(e.key==='ArrowLeft'){e.preventDefault();go(-1)}};
+ document.addEventListener('keydown',T.key,true);window.addEventListener('resize',place);window.addEventListener('scroll',place,true);show()}
+function maybeTour(){TOUR_TIMER=null;if(W2||!G.ready||TOUR||tourDone())return false;
+ if(document.getElementById('gate').style.display==='flex'||modal.classList.contains('on')){TOUR_TIMER=setTimeout(maybeTour,3000);return false}
+ startTour();return true}
 /* ---- напоминание о резервной копии ---- */
 let BKP_DELAY=15000,BKP_TIMER=null;const DAY=864e5;
 const bkKey=()=>'plan-knigi-bkp:'+((G.sess&&G.sess.uid)||'anon');
@@ -646,7 +722,7 @@ function markBackup(){bkSave({last:Date.now(),snooze:0})}
 /* первое напоминание — через 3 дня после начала работы, дальше — раз в 2 недели после последней скачанной копии */
 function backupDue(){const st=bkState(),now=Date.now();if(!st.first){bkSave({first:now});return false}if(st.snooze&&now<st.snooze)return false;return now-(st.last||st.first)>=(st.last?14:3)*DAY}
 function maybeBackupReminder(){BKP_TIMER=null;if(W2||!G.ready||!backupDue())return false;
- const busy=document.getElementById('gate').style.display==='flex'||modal.classList.contains('on')||(document.activeElement&&document.activeElement.isContentEditable);
+ const busy=document.getElementById('gate').style.display==='flex'||modal.classList.contains('on')||(document.activeElement&&document.activeElement.isContentEditable)||!!TOUR;
  if(busy){BKP_TIMER=setTimeout(maybeBackupReminder,60000);return false}
  backupReminder();return true}
 function backupReminder(){bkSave({snooze:Date.now()+DAY});/* если закрыть окно кликом мимо — напомним завтра */
@@ -666,7 +742,7 @@ function renderBookBtn(){if(!bkc)return;const b=curBook();bkc.replaceChildren(h(
 function closeBookMenu(){if(bkm)bkm.classList.remove('on')}
 function createBook(name,tpl){const b=newBook(name,tpl);S.books.push(b);commit();enterBook(b.id);dataChanged();toast('Создана книга «'+name+'»')}
 function deleteBook(){const i=S.books.findIndex(b=>b.id===S.bk);if(S.books.length<2||i<0)return;const name=S.books[i].name;S.books.splice(i,1);if(UI.acts)delete UI.acts[S.bk];enterBook(S.books[Math.max(0,i-1)].id);dataChanged();toast('Книга «'+name+'» удалена')}
-function bookMenu(mode){if(!bkm)return;bkm.classList.add('on');const can=S.edit&&!W2,cur=curBook(),B=(l,f,c)=>h('button',{type:'button',class:'bki'+(c?' '+c:''),on:{click:f}},l),btns=(...x)=>h('div',{class:'bf'},...x),bt=(l,f,c)=>h('button',{type:'button',class:c||'',on:{click:f}},l);
+function bookMenu(mode){if(!bkm)return;bkm.classList.add('on');const cur=curBook(),B=(l,f,c)=>h('button',{type:'button',class:'bki'+(c?' '+c:''),on:{click:f}},l),btns=(...x)=>h('div',{class:'bf'},...x),bt=(l,f,c)=>h('button',{type:'button',class:c||'',on:{click:f}},l);
  if(mode==='new'||mode==='ren'){const inp=h('input',{type:'text',maxLength:40,placeholder:'Название книги',autocomplete:'off',value:mode==='ren'?cur.name:''}),tp=h('input',{type:'checkbox',checked:true});
   const go=()=>{const name=inp.value.trim();if(!name){toast('Введите название книги');return}
    if(mode==='ren'){cur.name=name;dataChanged();renderBookBtn();bookMenu('list');return}
@@ -676,7 +752,7 @@ function bookMenu(mode){if(!bkm)return;bkm.classList.add('on');const can=S.edit&
  if(mode==='del'){bkm.replaceChildren(h('p',{},'Удалить книгу «'+cur.name+'» вместе со всеми её вкладками? Это нельзя отменить.'),btns(bt('Отмена',()=>bookMenu('list')),bt('Удалить',()=>{closeBookMenu();deleteBook()},'dng')));return}
  const list=h('div',{class:'bl'});S.books.forEach(b=>list.append(B((b.id===S.bk?'✓ ':'')+(b.name||'Без названия'),()=>{closeBookMenu();switchBook(b.id)},b.id===S.bk?'on':'')));
  const nb=B('＋ Новая книга',()=>bookMenu('new')),rb=B('✎ Переименовать текущую',()=>bookMenu('ren')),db=B('🗑 Удалить текущую',()=>bookMenu('del'),'dng'),items=[list,h('hr'),nb,rb,db];
- if(!can){[nb,rb,db].forEach(x=>x.disabled=true);items.push(h('p',{},W2?'В этом окне книги менять нельзя.':'Чтобы создавать, переименовывать и удалять книги, включите режим «Правка».'))}else if(S.books.length<2){db.disabled=true;db.title='Последнюю книгу удалить нельзя'}
+ if(S.books.length<2){db.disabled=true;db.title='Последнюю книгу удалить нельзя'}
  bkm.replaceChildren(...items)}
 if(bkc){bkc.onclick=()=>{bkm.classList.contains('on')?closeBookMenu():bookMenu('list')};document.addEventListener('mousedown',e=>{if(bkm.classList.contains('on')&&!(e.target.closest&&e.target.closest('.bkw')))closeBookMenu()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBookMenu()})}
 /* ---- вспомогательные функции ---- */
@@ -769,7 +845,7 @@ function startApp(books,pushFlag){const fix=bl=>bl.forEach(b=>{b.id=b.id||uid();
  const act=W2&&!W2done?+TABQ[1]:first?(UI.acts?(UI.acts[S.bk]||0):(UI.book===S.bk||!UI.book?Number(UI.active)||0:0)):S.active;W2done=true;
  S.active=Math.max(0,Math.min(act,S.tabs.length-1));G.ready=true;G.dirty=!!pushFlag;G.err='';
  H.u=[];H.r=[];H.cur=snapS();H.cs=strip(H.cur);MM=null;updHist();document.getElementById('gate').style.display='none';render();updBk();saveLocal();q.value='';
- if(pushFlag)pushNow();if(!W2&&!BKP_TIMER)BKP_TIMER=setTimeout(maybeBackupReminder,BKP_DELAY);if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}
+ if(pushFlag)pushNow();if(W2&&BLOCKQ&&!W2blk){W2blk=true;setTimeout(()=>go(BLOCKQ[1]),350)}if(!W2&&!BKP_TIMER)BKP_TIMER=setTimeout(maybeBackupReminder,BKP_DELAY);if(!W2&&!TOUR_TIMER&&!tourDone())TOUR_TIMER=setTimeout(maybeTour,TOUR_DELAY);if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}
 const gm=t=>{const m=document.getElementById('gmsg');if(m)m.textContent=t};
 function conflictGate(loc,remote){return new Promise(res=>{const gb=(l,f,s)=>h('button',{class:'gbtn'+(s?' s':''),on:{click:f}},l);
  document.getElementById('gate').replaceChildren(h('div',{class:'gbox'},h('h2',{},'Найдены две версии'),h('p',{},'В облаке: от '+fmtT(remote.saved)+'. На этом устройстве есть несохранённые правки от '+fmtT(loc.at)+'. Какую оставить?'),
@@ -890,6 +966,8 @@ function openSettings(){const st=h('p',{id:'bst'},''),info=h('p',{id:'gst',class
  box.append(h('div',{class:'mh'},'Аккаунт'));
  if(G.ready&&conn())box.append(h('p',{class:'sett-note'},'Почта: '+(G.sess.email||'—')),B('🔐 Сменить пароль',()=>{closeModal();changePassScreen()}),B('✉️ Сменить почту',()=>{closeModal();changeEmailScreen()}),B('Выйти из аккаунта',signOut));
  else box.append(B('🔗 Войти или зарегистрироваться',()=>{closeModal();gateUI(true)}));
+ /* помощь */
+ box.append(h('div',{class:'mh'},'Помощь'),B('🎓 Пройти обучение заново',()=>{closeModal();startTour()}));
  /* данные и облако */
  box.append(h('div',{class:'mh'},'Данные и облако'),info);
  const copyFile=B('⬇ Скачать копию (.json)',async()=>{bsay('Готовлю копию…');dl(await backupData(),'копия');markBackup();refresh();bsay('Файл скачан. Положите его в надёжное место: на флешку, в облачный диск или отправьте себе на почту.')});
