@@ -41,6 +41,31 @@ header h1.logo{font-size:23px}
 .lgt{font-family:Georgia,"Times New Roman",serif;line-height:1;letter-spacing:.2px;white-space:nowrap}
 .lgt b{font-weight:700;color:var(--tx)}
 .lgt i{font-style:italic;font-weight:600;color:var(--ac);margin-left:1px}
+.bkw{position:relative}
+.bkc{font:inherit;font-size:14px;display:inline-flex;align-items:center;gap:6px;max-width:230px;padding:6px 12px;border:1px solid var(--bd);border-radius:999px;background:var(--card);color:var(--tx);cursor:pointer}
+.bkc .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.bkm{display:none;position:absolute;left:0;top:100%;margin-top:6px;z-index:30;width:min(320px,92vw);padding:8px;background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.bkm.on{display:block}
+.bkm .bl{max-height:240px;overflow:auto;display:flex;flex-direction:column;gap:2px;margin-bottom:2px}
+.bki{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font:inherit;font-size:15px;border:none;background:transparent;color:var(--tx);padding:8px 10px;border-radius:8px;cursor:pointer}
+.bki:hover:not(:disabled){background:var(--acbg)}.bki.on{font-weight:600;background:var(--acbg)}.bki:disabled{opacity:.4;cursor:default}.bki.dng{color:#d9534f}
+.bkm hr{border:none;border-top:1px solid var(--bd);margin:6px 0}
+.bkm p{margin:4px 2px;font-size:14px;color:var(--mut)}
+.bkm input[type=text]{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);margin:4px 0}
+.bkm .bkchk{display:flex;align-items:center;gap:8px;font-size:14px;margin:4px 2px}
+.bkm .bf{display:flex;gap:6px;margin-top:8px}
+.bkm .bf button{flex:1;font:inherit;padding:8px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+.bkm .bf button.go{background:var(--ac);color:var(--onac,#fff);border-color:var(--ac)}
+.bkm .bf button.dng{background:#d9534f;color:#fff;border-color:#d9534f}
+.box.big{max-width:580px;text-align:center;padding:30px 26px}
+.bigem{font-size:60px;line-height:1;margin-bottom:6px}
+.box.big h3{font-size:25px;margin:6px 0 12px}
+.box.big p{font-size:16px;line-height:1.55;margin:8px 0}
+.box.big ul{text-align:left;margin:12px auto;max-width:440px;padding-left:22px;font-size:15.5px;line-height:1.75}
+.box.big .bkdone{color:#2f9e5b;font-weight:600}
+.bigbtn{display:block;width:100%;font:inherit;font-size:18px;font-weight:600;padding:15px;border-radius:12px;border:none;background:var(--ac);color:var(--onac,#fff);cursor:pointer;margin:16px 0 8px}
+.bigbtn:disabled{opacity:.6;cursor:default}
+.bigsec{display:block;width:100%;font:inherit;font-size:15px;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);cursor:pointer;margin-top:6px}
 .gbox h2.logo{font-size:30px;margin:0 0 14px;gap:12px}
 .gbox h2.logo .lgm{width:50px;height:50px;border-radius:14px}
 #mode{display:flex;border:1px solid var(--bd);border-radius:10px;overflow:hidden}
@@ -253,7 +278,7 @@ body.read .irs,body.mm .irs{display:none}
 <body>
 <header><svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="lgg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7bff" style="stop-color:var(--ac)"/><stop offset="1" stop-color="#e255a1" style="stop-color:color-mix(in srgb,var(--ac) 45%,#e255a1)"/></linearGradient></defs>
 <symbol id="lg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="url(#lgg)"/><path d="M11 22c8-3 15-1 21 3v25c-6-4-13-6-21-3z" fill="#fff"/><path d="M53 22c-8-3-15-1-21 3v25c6-4 13-6 21-3z" fill="#fff" fill-opacity=".93"/><path d="M32 25v25" stroke="#d9d3ff" stroke-width="1.2"/><rect x="16" y="31" width="11" height="2.6" rx="1.3" fill="#8b7bff" opacity=".65"/><rect x="16" y="36.5" width="8" height="2.6" rx="1.3" fill="#8b7bff" opacity=".65"/><rect x="16" y="42" width="11" height="2.6" rx="1.3" fill="#8b7bff" opacity=".65"/><path d="M37 44c3.5 0 4-6 7-6s3.5-6 7-6" stroke="#8b7bff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="44" r="2.8" fill="#e255a1"/><circle cx="51" cy="32" r="2.8" fill="#e255a1"/><path d="M45 6.5l2.1 5 5 2.1-5 2.1-2.1 5-2.1-5-5-2.1 5-2.1z" fill="#ffe08a"/></symbol></svg>
-<h1 class="logo" title="План книги"><svg class="lgm" viewBox="0 0 64 64" aria-hidden="true"><use href="#lg"/></svg><span class="lgt"><b>План</b> <i>книги</i></span></h1><div class="sr"><input id="q" type="search" name="plan-search" placeholder="🔍 Поиск по сайту…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other"><div id="sres"></div></div><button id="bk" type="button" title="Состояние сохранения. Нажмите, чтобы сохранить сейчас">● Сохранено</button><button id="st" class="seg" type="button" title="Настройки" aria-label="Настройки">⚙ Настройки</button><div id="mode"></div></header>
+<h1 class="logo" title="План книги"><svg class="lgm" viewBox="0 0 64 64" aria-hidden="true"><use href="#lg"/></svg><span class="lgt"><b>План</b> <i>книги</i></span></h1><div class="bkw"><button id="bkc" class="bkc" type="button" title="Книги: переключить, создать, удалить"></button><div id="bkm" class="bkm"></div></div><div class="sr"><input id="q" type="search" name="plan-search" placeholder="🔍 Поиск по сайту…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other"><div id="sres"></div></div><button id="bk" type="button" title="Состояние сохранения. Нажмите, чтобы сохранить сейчас">● Сохранено</button><button id="st" class="seg" type="button" title="Настройки" aria-label="Настройки">⚙ Настройки</button><div id="mode"></div></header>
 <div id="tabs"></div>
 <div id="fmt"><span class="pw"><button id="plus" type="button" title="Добавить блок">+</button><div id="pp"></div></span><button id="ftog" type="button"></button><div id="fp"></div></div>
 <main id="main"></main>
@@ -262,7 +287,7 @@ body.read .irs,body.mm .irs{display:none}
 <div id="toast"></div>
 <div id="modal"></div>
 <script>
-const UIK='plan-knigi-ui';let S,UI={};const TABQ=/[#&]tab=(\d+)/.exec(location.hash),W2=!!TABQ;let W2done=false;
+const UIK='plan-knigi-ui';let S,UI={};const TABQ=/[#&]tab=(\d+)/.exec(location.hash),BOOKQ=/[#&]book=([\w-]+)/.exec(location.hash),W2=!!TABQ;let W2done=false;
 try{UI=JSON.parse(localStorage.getItem(UIK))||{}}catch(e){}
 S={v:2,active:Number(UI.active)||0,edit:W2?false:UI.edit!==false,fmtOpen:!!UI.fmtOpen,tabs:[
 {name:'Сюжет',blocks:[{t:'h',lv:1,x:'Название книги'},{t:'p',x:'Коротко: о чём эта история?'},{t:'warn',y:'w',x:'Не забыть: связать завязку с финалом.'}]},
@@ -273,9 +298,15 @@ if(S.v!==2){S.tabs.forEach(t=>t.blocks.forEach(b=>{if('x' in b)b.x=esc(b.x||'');
 S.tabs.forEach(t=>t.blocks.forEach(b=>{b.id=b.id||uid()}));
 if(typeof S.edit!=='boolean')S.edit=true;
 if(S.active>=S.tabs.length)S.active=0;
+/* несколько книг на одном аккаунте: S.books — все книги, S.tabs — вкладки открытой книги (остальной код работает как раньше) */
+S.books=[{id:'b'+uid(),name:'Моя книга',tabs:S.tabs}];S.bk=S.books[0].id;
+function curBook(){return S.books.find(b=>b.id===S.bk)||S.books[0]}
+delete S.tabs;Object.defineProperty(S,'tabs',{get(){return curBook().tabs},set(v){curBook().tabs=v},enumerable:false,configurable:true});
 try{document.execCommand('defaultParagraphSeparator',false,'br')}catch(e){}
-const save=()=>{if(W2)return;try{localStorage.setItem(UIK,JSON.stringify({active:S.active,edit:S.edit,fmtOpen:S.fmtOpen}))}catch(e){}};
+const save=()=>{if(W2)return;try{const acts=Object.assign({},UI.acts||{});acts[S.bk]=S.active;UI.acts=acts;UI.book=S.bk;localStorage.setItem(UIK,JSON.stringify({active:S.active,edit:S.edit,fmtOpen:S.fmtOpen,book:S.bk,acts}))}catch(e){}};
 const upd=()=>{commit();save();render()};
+function enterBook(id){S.bk=id;const a=(UI.acts&&UI.acts[id])||0;S.active=Math.max(0,Math.min(a,S.tabs.length-1));H.u=[];H.r=[];H.cur=snapS();H.cs=strip(H.cur);MM=null;q.value='';sres.classList.remove('on');save();render();updHist()}
+function switchBook(id){if(id===S.bk||!S.books.some(b=>b.id===id))return;commit();save();enterBook(id)}
 const h=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a){if(k==='on')for(const v in a.on)e.addEventListener(v,a.on[v]);else if(k in e)e[k]=a[k];else e.setAttribute(k,a[k])}c.flat().forEach(x=>e.append(x));return e};
 let tt;const toast=m=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2400)};
 let PSZ='',PEND=null;
@@ -353,8 +384,8 @@ R.img=b=>{const wrap=h('div',{class:'iwrap'}),im=h('img',{alt:b.x?plain(b.x):'И
  hd.addEventListener('dblclick',()=>{b.iw=100;upd()});
  wrap.append(im,hd);return h('div',{class:'img'},wrap,ed(b,'x','cap','Подпись (необязательно)…'))};
 function renderMode(){if(!S.edit)MM=null;document.body.classList.toggle('mm',!!MM);document.body.classList.toggle('read',!S.edit);document.getElementById('mode').replaceChildren(...[[true,'✏️ Правка'],[false,'👁 Чтение']].map(([v,l])=>h('button',{class:'seg'+(S.edit===v?' on':''),on:{click:()=>{S.edit=v;upd()}}},l)))}
-function openTabWin(i){const w=window.open(location.origin+location.pathname+location.search+'#tab='+i,'_blank');if(!w)toast('Браузер заблокировал новое окно: разрешите всплывающие окна для этого сайта')}
-function renderTabs(){const t=document.getElementById('tabs');t.replaceChildren();if(W2&&S.tabs[S.active])document.title=(S.tabs[S.active].name||'Вкладка')+' · План книги';
+function openTabWin(i){const w=window.open(location.origin+location.pathname+location.search+'#tab='+i+'&book='+S.bk,'_blank');if(!w)toast('Браузер заблокировал новое окно: разрешите всплывающие окна для этого сайта')}
+function renderTabs(){const t=document.getElementById('tabs');t.replaceChildren();if(W2&&S.tabs[S.active])document.title=(S.tabs[S.active].name||'Вкладка')+' · '+curBook().name;
  S.tabs.forEach((tb,i)=>{const on=i===S.active;
   const b=h('button',{class:'tab'+(on?' on':''),draggable:S.edit,title:(S.edit?(on?'Двойной клик — переименовать. Перетащите, чтобы переставить. ':'Перетащите, чтобы переставить. '):'')+'Колёсико мыши или Ctrl+клик — открыть в новом окне',on:{click:ev=>{if(ev.ctrlKey||ev.metaKey){openTabWin(i);return}if(!on){S.active=i;upd()}},auxclick:ev=>{if(ev.button===1){ev.preventDefault();openTabWin(i)}},mousedown:ev=>{if(ev.button===1)ev.preventDefault()},dblclick:()=>{if(on&&S.edit)rename(b,tb)}}},tb.name||'Без названия');
   tabDnd(b,i);t.append(b);
@@ -363,7 +394,7 @@ function renderTabs(){const t=document.getElementById('tabs');t.replaceChildren(
 function renderBlocks(){CS=null;const m=document.getElementById('main');m.replaceChildren();const bl=S.tabs[S.active].blocks;
  bl.forEach((_,i)=>m.append(blockEl(bl,i,null)));
  if(!bl.length)m.append(h('p',{class:'empty'},S.edit?'Здесь пока пусто. Добавьте блок кнопками внизу.':'Здесь пока пусто.'))}
-function render(){renderMode();renderTabs();renderBlocks();renderMM()}
+function render(){renderMode();renderTabs();renderBlocks();renderMM();renderBookBtn()}
 const NEW={h:()=>({t:'h',lv:2,x:''}),p:()=>({t:'p',x:''}),table:()=>({t:'table',rows:[['','',''],['','',''],['','','']]}),warn:()=>({t:'warn',y:'w',x:''}),cards:()=>({t:'cards',cards:[{a:'',b:''},{a:'',b:''}]})};
 const pl=document.getElementById('plus'),pp=document.getElementById('pp');
 const closePP=()=>pp.classList.remove('open');
@@ -496,7 +527,7 @@ document.getElementById('main').addEventListener('click',ev=>{if(!MM)return;cons
  const k=MM.indexOf(el.dataset.id);k<0?MM.push(el.dataset.id):MM.splice(k,1);el.classList.toggle('picked');renderMM()},true);
 /* история (последние 5 действий) */
 let H={u:[],r:[],t:null,cur:'',cs:''};
-const snapS=()=>JSON.stringify(S.tabs),strip=j=>j.replace(/,"c":(true|false)/g,'');
+const snapS=()=>JSON.stringify(S.tabs),snapAll=()=>JSON.stringify(S.books),strip=j=>j.replace(/,"c":(true|false)/g,'');
 H.cur=snapS();H.cs=strip(H.cur);
 function updHist(){bu.disabled=!H.u.length;bd.disabled=!H.r.length}
 function commit(){clearTimeout(H.t);const f=snapS(),st=strip(f);if(st!==H.cs){H.u.push(H.cur);if(H.u.length>5)H.u.shift();H.r=[]}if(f!==H.cur)dataChanged();H.cur=f;H.cs=st;updHist()}
@@ -595,6 +626,10 @@ const conn=()=>!!(G.sess&&G.sess.refresh),enc=encodeURIComponent,wait=ms=>new Pr
 const lsk=()=>'state:'+((G.sess&&G.sess.uid)||'anon');
 const defaultTabs=()=>[{name:'Сюжет',blocks:[{id:uid(),t:'h',lv:1,x:'Название книги'},{id:uid(),t:'p',x:'Коротко: о чём эта история?'},{id:uid(),t:'warn',y:'w',x:'Не забыть: связать завязку с финалом.'}]},
  {name:'Герои',blocks:[{id:uid(),t:'cards',cards:[{a:'Главный герой',b:'Цель, страх, характер…'},{a:'Антагонист',b:'Что им движет?'}]}]}];
+const newBook=(name,tpl)=>{const tabs=tpl===false?[{name:'Сюжет',blocks:[{id:uid(),t:'p',x:''}]}]:defaultTabs();if(tpl!==false&&tabs[0]&&tabs[0].blocks[0])tabs[0].blocks[0].x=esc(name);return{id:'b'+uid(),name,tabs}};
+const tabOk=x=>x&&typeof x.name==='string'&&Array.isArray(x.blocks);
+const bookOk=b=>b&&typeof b.id==='string'&&typeof b.name==='string'&&Array.isArray(b.tabs)&&b.tabs.length&&b.tabs.every(tabOk);
+const booksOf=d=>d&&Array.isArray(d.books)&&d.books.length?d.books:d&&Array.isArray(d.tabs)&&d.tabs.length?[{id:'b1',name:'Моя книга',tabs:d.tabs}]:null;
 function goto(u){location.href=u}
 const stamp=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+'-'+p(d.getMinutes())};
 const fmtT=x=>x?new Date(x).toLocaleString('ru-RU'):'—';
@@ -602,6 +637,48 @@ function dl(data,tag,ext,type){const a=document.createElement('a');a.href=URL.cr
 const redirectUri=()=>location.origin+location.pathname.replace(/index\.html$/,'');
 const cfg=()=>{G.url=SUPABASE_URL.trim().replace(/\/+$/,'').replace(/\/(rest|auth)\/v1$/,'');G.key=SUPABASE_KEY.trim()};
 const keyBad=k=>{if(/^sb_secret_/.test(k))return true;try{const p=JSON.parse(atob(k.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));return p.role==='service_role'}catch(e){return false}};
+/* ---- напоминание о резервной копии ---- */
+let BKP_DELAY=15000,BKP_TIMER=null;const DAY=864e5;
+const bkKey=()=>'plan-knigi-bkp:'+((G.sess&&G.sess.uid)||'anon');
+const bkState=()=>{try{return JSON.parse(localStorage.getItem(bkKey()))||{}}catch(e){return{}}};
+const bkSave=o=>{try{localStorage.setItem(bkKey(),JSON.stringify(Object.assign(bkState(),o)))}catch(e){}};
+function markBackup(){bkSave({last:Date.now(),snooze:0})}
+/* первое напоминание — через 3 дня после начала работы, дальше — раз в 2 недели после последней скачанной копии */
+function backupDue(){const st=bkState(),now=Date.now();if(!st.first){bkSave({first:now});return false}if(st.snooze&&now<st.snooze)return false;return now-(st.last||st.first)>=(st.last?14:3)*DAY}
+function maybeBackupReminder(){BKP_TIMER=null;if(W2||!G.ready||!backupDue())return false;
+ const busy=document.getElementById('gate').style.display==='flex'||modal.classList.contains('on')||(document.activeElement&&document.activeElement.isContentEditable);
+ if(busy){BKP_TIMER=setTimeout(maybeBackupReminder,60000);return false}
+ backupReminder();return true}
+function backupReminder(){bkSave({snooze:Date.now()+DAY});/* если закрыть окно кликом мимо — напомним завтра */
+ const st=bkState(),msg=h('p',{class:'sett-note',id:'bkmsg'},''),box=h('div',{class:'box big'});
+ const tips=()=>h('ul',{},h('li',{},'на флешку или внешний диск;'),h('li',{},'в облачный диск: Google Диск, Яндекс Диск, Dropbox;'),h('li',{},'отправьте файл себе на почту или в «Избранное» мессенджера.'),h('li',{},'Лучше хранить в двух местах сразу.'));
+ const later=(d,l)=>h('button',{type:'button',class:'bigsec',on:{click:()=>{bkSave({snooze:Date.now()+d*DAY});closeModal()}}},l);
+ const step1=()=>{const b=h('button',{type:'button',class:'bigbtn',on:{click:async()=>{b.disabled=true;b.textContent='Готовлю копию…';try{dl(await backupData(),'копия');markBackup();step2()}catch(e){b.disabled=false;b.textContent='⬇ Скачать копию (.json)';msg.textContent='Не удалось подготовить копию: '+((e&&e.msg)||'попробуйте ещё раз')}}}},'⬇ Скачать копию (.json)');
+  box.replaceChildren(h('div',{class:'bigem'},'💾'),h('h3',{},'Сохраните резервную копию'),
+   h('p',{},'Ваши книги хранятся в облаке, но от случайного удаления, ошибки или сбоя сервиса защищает только файл, который лежит у вас.'),
+   h('p',{},st.last?'Последняя копия с этого устройства: '+fmtT(st.last)+'.':'Копию с этого устройства вы ещё ни разу не скачивали.'),
+   h('p',{},'Скачайте файл и положите его в надёжное место:'),tips(),b,msg,later(3,'Напомнить через 3 дня'),later(1,'Не сейчас: напомнить завтра'))};
+ const step2=()=>box.replaceChildren(h('div',{class:'bigem'},'✅'),h('h3',{},'Копия скачана'),h('p',{class:'bkdone'},'Теперь самое важное: перенесите файл туда, где он не потеряется.'),h('p',{},'Файл сейчас лежит в папке «Загрузки» (или там, куда ваш браузер сохраняет скачанное). Положите его:'),tips(),h('p',{},'Вернуть книги из файла можно в ⚙ Настройки → «Восстановить из файла». Напомню снова через 2 недели.'),h('button',{type:'button',class:'bigbtn',on:{click:closeModal}},'Готово, файл сохранён'));
+ step1();modal.replaceChildren(box);modal.classList.add('on')}
+/* ---- книги: меню в шапке ---- */
+const bkm=document.getElementById('bkm'),bkc=document.getElementById('bkc');
+function renderBookBtn(){if(!bkc)return;const b=curBook();bkc.replaceChildren(h('span',{},'📚'),h('span',{class:'n'},b.name||'Книга'),h('span',{},'▾'));bkc.title='Книга «'+b.name+'». Нажмите, чтобы переключить, создать или удалить'}
+function closeBookMenu(){if(bkm)bkm.classList.remove('on')}
+function createBook(name,tpl){const b=newBook(name,tpl);S.books.push(b);commit();enterBook(b.id);dataChanged();toast('Создана книга «'+name+'»')}
+function deleteBook(){const i=S.books.findIndex(b=>b.id===S.bk);if(S.books.length<2||i<0)return;const name=S.books[i].name;S.books.splice(i,1);if(UI.acts)delete UI.acts[S.bk];enterBook(S.books[Math.max(0,i-1)].id);dataChanged();toast('Книга «'+name+'» удалена')}
+function bookMenu(mode){if(!bkm)return;bkm.classList.add('on');const can=S.edit&&!W2,cur=curBook(),B=(l,f,c)=>h('button',{type:'button',class:'bki'+(c?' '+c:''),on:{click:f}},l),btns=(...x)=>h('div',{class:'bf'},...x),bt=(l,f,c)=>h('button',{type:'button',class:c||'',on:{click:f}},l);
+ if(mode==='new'||mode==='ren'){const inp=h('input',{type:'text',maxLength:40,placeholder:'Название книги',autocomplete:'off',value:mode==='ren'?cur.name:''}),tp=h('input',{type:'checkbox',checked:true});
+  const go=()=>{const name=inp.value.trim();if(!name){toast('Введите название книги');return}
+   if(mode==='ren'){cur.name=name;dataChanged();renderBookBtn();bookMenu('list');return}
+   if(S.books.length>=30){toast('Можно хранить до 30 книг');return}closeBookMenu();createBook(name,tp.checked)};
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();if(e.key==='Escape')bookMenu('list')});
+  bkm.replaceChildren(h('p',{},mode==='ren'?'Новое название для «'+cur.name+'»':'Новая книга'),inp,...(mode==='new'?[h('label',{class:'bkchk'},tp,'Взять шаблон вкладок (Сюжет, Герои)')]:[]),btns(bt('Отмена',()=>bookMenu('list')),bt(mode==='ren'?'Сохранить':'Создать',go,'go')));inp.focus();inp.select();return}
+ if(mode==='del'){bkm.replaceChildren(h('p',{},'Удалить книгу «'+cur.name+'» вместе со всеми её вкладками? Это нельзя отменить.'),btns(bt('Отмена',()=>bookMenu('list')),bt('Удалить',()=>{closeBookMenu();deleteBook()},'dng')));return}
+ const list=h('div',{class:'bl'});S.books.forEach(b=>list.append(B((b.id===S.bk?'✓ ':'')+(b.name||'Без названия'),()=>{closeBookMenu();switchBook(b.id)},b.id===S.bk?'on':'')));
+ const nb=B('＋ Новая книга',()=>bookMenu('new')),rb=B('✎ Переименовать текущую',()=>bookMenu('ren')),db=B('🗑 Удалить текущую',()=>bookMenu('del'),'dng'),items=[list,h('hr'),nb,rb,db];
+ if(!can){[nb,rb,db].forEach(x=>x.disabled=true);items.push(h('p',{},W2?'В этом окне книги менять нельзя.':'Чтобы создавать, переименовывать и удалять книги, включите режим «Правка».'))}else if(S.books.length<2){db.disabled=true;db.title='Последнюю книгу удалить нельзя'}
+ bkm.replaceChildren(...items)}
+if(bkc){bkc.onclick=()=>{bkm.classList.contains('on')?closeBookMenu():bookMenu('list')};document.addEventListener('mousedown',e=>{if(bkm.classList.contains('on')&&!(e.target.closest&&e.target.closest('.bkw')))closeBookMenu()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBookMenu()})}
 /* ---- вспомогательные функции ---- */
 const b64=u=>{u=u instanceof Uint8Array?u:new Uint8Array(u);let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)};
 const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
@@ -612,8 +689,8 @@ const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('plan-knigi',1);r.o
 const kvGet=async k=>{const d=await idb();return new Promise((res,rej)=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})};
 const kvSet=async(k,v)=>{const d=await idb();return new Promise((res,rej)=>{const t=d.transaction('kv','readwrite');v==null?t.objectStore('kv').delete(k):t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})};
 const kvDelPrefix=async p=>{const d=await idb();return new Promise((res,rej)=>{const t=d.transaction('kv','readwrite'),s=t.objectStore('kv'),q=s.openCursor();q.onsuccess=()=>{const c=q.result;if(!c)return;if(String(c.key).startsWith(p))c.delete();c.continue()};t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})};
-const saveLocal=async()=>{if(!G.sess)return;try{await kvSet(lsk(),{tabs:S.tabs,dirty:G.dirty,base:G.base,at:Date.now()})}catch(e){toast('Не удалось сохранить копию в браузере')}};
-async function readLocalTabs(loc){return loc&&Array.isArray(loc.tabs)&&loc.tabs.length?loc.tabs:null}
+const saveLocal=async()=>{if(!G.sess)return;try{await kvSet(lsk(),{books:S.books,dirty:G.dirty,base:G.base,at:Date.now()})}catch(e){toast('Не удалось сохранить копию в браузере')}};
+async function readLocalBooks(loc){const b=booksOf(loc);return b&&b.every(bookOk)?b:null}
 const loadPend=async()=>{try{G.pend=new Set((await kvGet('pend:'+G.sess.uid))||[])}catch(e){G.pend=new Set()}};
 /* ---- связь с Supabase ---- */
 async function tfetch(url,opt={},ms=25000){const ac=new AbortController(),to=setTimeout(()=>ac.abort(),ms);try{return await fetch(url,{...opt,signal:ac.signal})}catch(e){throw{net:1}}finally{clearTimeout(to)}}
@@ -631,9 +708,9 @@ async function sto(path,opt={}){await ensureTok();const r=await tfetch(G.url+'/s
 const errMsg=e=>e&&e.net?'Нет связи с облаком. Если интернет есть, а ошибка не пропадает, нажмите ☁ → «Проверить подключение».':e&&e.auth?'Нужно войти снова (правки пока сохранены в этом браузере).':e&&(e.code==='42P01'||e.code==='PGRST205'||e.http===404)?'В облаке нет нужной таблицы или хранилища: владельцу сайта нужно выполнить SQL-настройку.':e&&(e.code==='42501'||e.http===403)?'У аккаунта нет прав на таблицу или хранилище. Владельцу сайта нужно проверить SQL-настройку (политики доступа).':e&&e.http===413?'Данных слишком много для одной отправки. Уберите часть изображений.':e&&e.http===429?'Слишком много запросов. Повторю позже.':e&&(e.code==='invalid_credentials'||/Invalid login credentials/i.test(e.msg||''))?'Неверная почта или пароль.':e&&(e.code==='email_not_confirmed'||/not confirmed/i.test(e.msg||''))?'Почта ещё не подтверждена: откройте письмо от сайта и перейдите по ссылке.':e&&(e.code==='user_already_exists'||/already registered/i.test(e.msg||''))?'Такая почта уже зарегистрирована. Нажмите «Войти».':e&&(e.code==='weak_password'||/at least/i.test(e.msg||''))?'Пароль слишком простой: нужно не меньше 6 символов.':e&&(e.code==='over_email_send_rate_limit'||e.code==='over_request_rate_limit')?'Слишком много писем или попыток. Подождите немного и повторите.':e&&e.code==='signup_disabled'?'Регистрация новых пользователей отключена владельцем сайта.':e&&e.http?'Облако вернуло ошибку '+e.http+(e.msg?': '+e.msg:'')+'.':(e&&e.msg)||'Что-то пошло не так. Повторите позже.';
 /* ---- данные: одна запись на аккаунт ---- */
 async function pull(){const a=await(await rest('plan_data?select=data,version&user_id=eq.'+G.sess.uid)).json();return a&&a[0]?a[0]:null}
-const rowOk=r=>r&&r.data&&Array.isArray(r.data.tabs)&&r.data.tabs.length;
+const rowOk=r=>{const b=r&&r.data&&booksOf(r.data);return !!(b&&b.every(bookOk))};
 const BADROW={msg:'Данные в облаке пусты или повреждены. Я ничего не перезаписываю: попросите владельца сайта посмотреть таблицу plan_data.'};
-async function openRow(row){return{tabs:row.data.tabs,saved:row.data.saved}}
+async function openRow(row){return{books:booksOf(row.data),saved:row.data.saved}}
 async function writeRow(obj,force){const uid=G.sess.uid,P={Prefer:'return=representation'},data=obj;let rows;
  if(force){const cur=await pull();G.base=cur?cur.version:null}
  if(G.base==null){try{rows=await(await rest('plan_data',{method:'POST',headers:P,body:JSON.stringify({user_id:uid,data,version:1})})).json()}catch(e){if(e&&e.http===409)throw{conflict:1};throw e}}
@@ -659,11 +736,12 @@ async function uploadPending(){for(const name of [...G.pend]){const e=await kvGe
   if(!r.ok){let j=null;try{j=await r.json()}catch(x){}if(!(j&&(String(j.statusCode)==='409'||j.error==='Duplicate')))throw{http:r.status,msg:(j&&j.message)||''}}
   G.pend.delete(name);await kvSet('pend:'+G.sess.uid,[...G.pend])}}
 const imgDataUrl=async name=>{const bl=await(await fetch(await loadImg(name))).blob();return new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(bl)})};
-async function backupData(){const t=JSON.parse(JSON.stringify(S.tabs));const walk=async bl=>{for(const b of bl){if(b.t==='img'&&b.src&&!/^data:/.test(b.src)){try{b.src=await imgDataUrl(b.src)}catch(e){b.src=''}}if(b.items)await walk(b.items)}};for(const tb of t)await walk(tb.blocks);return JSON.stringify({app:'plan-knigi',v:3,saved:new Date().toISOString(),tabs:t})}
+async function backupData(){const bs=JSON.parse(JSON.stringify(S.books));const walk=async bl=>{for(const b of bl){if(b.t==='img'&&b.src&&!/^data:/.test(b.src)){try{b.src=await imgDataUrl(b.src)}catch(e){b.src=''}}if(b.items)await walk(b.items)}};for(const bk of bs)for(const tb of bk.tabs)await walk(tb.blocks);return JSON.stringify({app:'plan-knigi',v:4,saved:new Date().toISOString(),books:bs})}
+async function storeInlineBooks(bs){let ch=false;for(const b of bs)if(await storeInline(b.tabs))ch=true;return ch}
 async function storeInline(tabs){let ch=false;const walk=async bl=>{for(const b of bl){if(b.t==='img'&&/^data:image\//.test(b.src||'')){try{const m=b.src.match(/^data:(image\/[a-z+.-]+);base64,(.*)$/i),body=unb64(m[2]),tag=/webp/i.test(m[1])?1:/png/i.test(m[1])?3:2,name=newName(),e=await imgPack(tag,body);
     await kvSet('img:'+G.sess.uid+':'+name,e.buffer);G.pend.add(name);IMGU[name]=URL.createObjectURL(new Blob([body],{type:m[1]}));b.src=name;ch=true}catch(e){}}if(b.items)await walk(b.items)}};
  for(const t of tabs)await walk(t.blocks);if(ch)await kvSet('pend:'+G.sess.uid,[...G.pend]);return ch}
-async function cleanImages(){const used=new Set(),walk=bl=>bl.forEach(b=>{if(b.t==='img'&&b.src)used.add(b.src);if(b.items)walk(b.items)});S.tabs.forEach(t=>walk(t.blocks));
+async function cleanImages(){const used=new Set(),walk=bl=>bl.forEach(b=>{if(b.t==='img'&&b.src)used.add(b.src);if(b.items)walk(b.items)});S.books.forEach(bk=>bk.tabs.forEach(t=>walk(t.blocks)));
  const r=await sto('object/list/plan-images',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:G.sess.uid,limit:1000,offset:0})});if(!r.ok)throw{http:r.status};
  const names=(await r.json()).map(x=>x.name).filter(n=>n&&!used.has(n)&&!G.pend.has(n));if(!names.length)return 0;
  const d=await sto('object/plan-images',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:names.map(n=>G.sess.uid+'/'+n)})});if(!d.ok)throw{http:d.status};
@@ -671,11 +749,11 @@ async function cleanImages(){const used=new Set(),walk=bl=>bl.forEach(b=>{if(b.t
 /* ---- сохранение ---- */
 function dataChanged(){if(!G.ready)return;G.dirty=true;saveLocal();updBk();schedPush()}
 function schedPush(){clearTimeout(G.timer);G.timer=setTimeout(pushNow,5000)}
-async function pushNow(){clearTimeout(G.timer);if(!G.ready||!conn()||!G.dirty||G.pushing)return;G.pushing=true;G.err='';updBk();const snap=snapS(),force=G.force;
- try{await uploadPending();const obj={app:'plan-knigi',v:3,saved:new Date().toISOString(),tabs:S.tabs};let ver;
+async function pushNow(){clearTimeout(G.timer);if(!G.ready||!conn()||!G.dirty||G.pushing)return;G.pushing=true;G.err='';updBk();const snap=snapAll(),force=G.force;
+ try{await uploadPending();const obj={app:'plan-knigi',v:4,saved:new Date().toISOString(),books:S.books};let ver;
   try{ver=await writeRow(obj,force)}
-  catch(e){if(e&&e.conflict){const cur=await pull();if(!cur){G.base=null;ver=await writeRow(obj,false)}else{let same=false;try{const o=await openRow(cur);same=JSON.stringify(o.tabs)===JSON.stringify(S.tabs)}catch(x){}if(same)ver=cur.version;else throw{conflict:1}}}else throw e}
-  G.offline=false;G.base=ver;G.at=Date.now();G.force=false;if(snapS()===snap)G.dirty=false;await saveLocal()}
+  catch(e){if(e&&e.conflict){const cur=await pull();if(!cur){G.base=null;ver=await writeRow(obj,false)}else{let same=false;try{const o=await openRow(cur);same=JSON.stringify(o.books)===JSON.stringify(S.books)}catch(x){}if(same)ver=cur.version;else throw{conflict:1}}}else throw e}
+  G.offline=false;G.base=ver;G.at=Date.now();G.force=false;if(snapAll()===snap)G.dirty=false;await saveLocal()}
  catch(e){if(e&&e.conflict){G.offline=false;G.err='conflict'}else if(e&&e.auth)G.err='auth';else if(e&&e.net){G.offline=true;G.timer=setTimeout(pushNow,30000)}else G.err=errMsg(e)}
  G.pushing=false;updBk();if(G.dirty&&!G.err&&!G.offline)schedPush()}
 function statusText(){return !conn()?'вы не вошли в аккаунт: данные хранятся только на этом устройстве':G.err==='auth'?'нужно войти снова (правки пока сохранены в этом браузере)':G.offline?'нет связи с облаком — правки сохраняются на этом устройстве и отправятся, когда связь появится':G.pushing?'сохраняю…':G.err==='conflict'?'в облаке другая версия данных — выберите, какую оставить':G.err?G.err:G.dirty?'есть несохранённые правки, отправлю через несколько секунд':'всё сохранено'+(G.at?' · '+fmtT(G.at):'')}
@@ -685,22 +763,25 @@ function updBk(){const b=document.getElementById('bk');if(!b)return;
  b.title=G.ready?(G.sess&&G.sess.email?G.sess.email+': ':'')+statusText():'Аккаунт'}
 window.addEventListener('beforeunload',e=>{if(G.ready&&conn()&&G.dirty){e.preventDefault();e.returnValue=''}});
 /* ---- запуск после входа ---- */
-function startApp(tabs,pushFlag){const fix=bl=>bl.forEach(b=>{b.id=b.id||uid();if(b.items)fix(b.items)});tabs.forEach(t=>fix(t.blocks));
- S.tabs=tabs;S.active=Math.max(0,Math.min(W2&&!W2done?(W2done=true,+TABQ[1]):S.active,tabs.length-1));G.ready=true;G.dirty=!!pushFlag;G.err='';
+function startApp(books,pushFlag){const fix=bl=>bl.forEach(b=>{b.id=b.id||uid();if(b.items)fix(b.items)});books.forEach(b=>b.tabs.forEach(t=>fix(t.blocks)));
+ const ids=books.map(b=>b.id),first=!G.ready;S.books=books;
+ S.bk=W2&&!W2done&&BOOKQ&&ids.includes(BOOKQ[1])?BOOKQ[1]:ids.includes(S.bk)?S.bk:ids.includes(UI.book)?UI.book:ids[0];
+ const act=W2&&!W2done?+TABQ[1]:first?(UI.acts?(UI.acts[S.bk]||0):(UI.book===S.bk||!UI.book?Number(UI.active)||0:0)):S.active;W2done=true;
+ S.active=Math.max(0,Math.min(act,S.tabs.length-1));G.ready=true;G.dirty=!!pushFlag;G.err='';
  H.u=[];H.r=[];H.cur=snapS();H.cs=strip(H.cur);MM=null;updHist();document.getElementById('gate').style.display='none';render();updBk();saveLocal();q.value='';
- if(pushFlag)pushNow();if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}
+ if(pushFlag)pushNow();if(!W2&&!BKP_TIMER)BKP_TIMER=setTimeout(maybeBackupReminder,BKP_DELAY);if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}
 const gm=t=>{const m=document.getElementById('gmsg');if(m)m.textContent=t};
 function conflictGate(loc,remote){return new Promise(res=>{const gb=(l,f,s)=>h('button',{class:'gbtn'+(s?' s':''),on:{click:f}},l);
  document.getElementById('gate').replaceChildren(h('div',{class:'gbox'},h('h2',{},'Найдены две версии'),h('p',{},'В облаке: от '+fmtT(remote.saved)+'. На этом устройстве есть несохранённые правки от '+fmtT(loc.at)+'. Какую оставить?'),
-  gb('⬇ Сначала скачать версию с устройства (.json)',()=>dl(JSON.stringify({app:'plan-knigi',v:3,saved:new Date(loc.at).toISOString(),tabs:loc.tabs}),'устройство'),1),gb('Оставить версию из облака',()=>res('remote')),gb('Оставить версию с устройства (облако обновится)',()=>res('local'))))})}
-async function startOffline(){const loc=await kvGet(lsk()).catch(()=>null),tabs=await readLocalTabs(loc);
- if(!tabs){toast('На этом устройстве ещё нет сохранённых данных: для первого входа нужен интернет.');return}
- G.base=loc.base!=null?loc.base:null;G.offline=conn();await loadPend();startApp(tabs,!!loc.dirty);
+  gb('⬇ Сначала скачать версию с устройства (.json)',()=>dl(JSON.stringify({app:'plan-knigi',v:4,saved:new Date(loc.at).toISOString(),books:loc.books}),'устройство'),1),gb('Оставить версию из облака',()=>res('remote')),gb('Оставить версию с устройства (облако обновится)',()=>res('local'))))})}
+async function startOffline(){const loc=await kvGet(lsk()).catch(()=>null),books=await readLocalBooks(loc);
+ if(!books){toast('На этом устройстве ещё нет сохранённых данных: для первого входа нужен интернет.');return}
+ G.base=loc.base!=null?loc.base:null;G.offline=conn();await loadPend();startApp(books,!!loc.dirty);
  if(conn()){G.offline=true;updBk();toast('Нет связи с облаком — работаю офлайн. Правки сохранятся, когда связь появится.')}}
 async function reconnect(){if(!G.ready||!conn()||!G.offline||G.busyRc)return;G.busyRc=true;
  try{if(G.dirty){await pushNow()}
   else{const row=await pull();
-   if(row){if(!rowOk(row))throw BADROW;if(row.version!==G.base&&!G.dirty){const o=await openRow(row);G.base=row.version;startApp(o.tabs,false);toast('Загружена свежая версия из облака')}else G.base=row.version}
+   if(row){if(!rowOk(row))throw BADROW;if(row.version!==G.base&&!G.dirty){const o=await openRow(row);G.base=row.version;startApp(o.books,false);toast('Загружена свежая версия из облака')}else G.base=row.version}
    G.offline=false;G.err=''}}
  catch(e){if(!(e&&e.net)){G.err=e&&e.auth?'auth':errMsg(e);G.offline=false}}
  G.busyRc=false;updBk()}
@@ -709,13 +790,13 @@ async function connect(){
   if(G.ready){document.getElementById('gate').style.display='none';G.offline=true;await reconnect();return}
   if(row&&!rowOk(row))throw BADROW;
   const loc=await kvGet(lsk()).catch(()=>null);await loadPend();
-  const remote=row?await openRow(row):null,locT=await readLocalTabs(loc);let tabs,pf=false;
-  if(!remote){G.base=null;tabs=locT||defaultTabs();pf=true}
-  else if(!locT||!loc.dirty){tabs=remote.tabs;G.base=row.version}
-  else if(loc.base!=null&&loc.base===row.version){tabs=locT;G.base=row.version;pf=true}
-  else{const pick=await conflictGate({tabs:locT,at:loc.at},remote);G.base=row.version;if(pick==='remote')tabs=remote.tabs;else{tabs=locT;pf=true}}
-  if(await storeInline(tabs))pf=true;
-  startApp(tabs,pf)}
+  const remote=row?await openRow(row):null,locB=await readLocalBooks(loc);let books,pf=false;
+  if(!remote){G.base=null;books=locB||[newBook('Моя книга')];pf=true}
+  else if(!locB||!loc.dirty){books=remote.books;G.base=row.version}
+  else if(loc.base!=null&&loc.base===row.version){books=locB;G.base=row.version;pf=true}
+  else{const pick=await conflictGate({books:locB,at:loc.at},remote);G.base=row.version;if(pick==='remote')books=remote.books;else{books=locB;pf=true}}
+  if(await storeInlineBooks(books))pf=true;
+  startApp(books,pf)}
  catch(e){if(G.ready)return;if(e&&e.net){startOffline();return}
   if(e&&e.auth){localStorage.removeItem(SK);G.sess=null;GNOTE='Вход истёк. Войдите снова.';gateUI();return}
   gateUI(true);gm(errMsg(e))}}
@@ -756,13 +837,17 @@ async function signOut(){if(G.dirty&&conn())await pushNow();const still=G.dirty,
  if(!still&&uid){await kvSet('state:'+uid,null).catch(()=>{});await kvDelPrefix('img:'+uid+':').catch(()=>{});await kvSet('pend:'+uid,null).catch(()=>{})}else toast('Часть правок не отправлена: она останется на этом устройстве до следующего входа.');
  try{if(G.sess)await aReq('logout',null,{tok:G.sess.access})}catch(e){}
  Object.values(IMGU).forEach(u=>{try{URL.revokeObjectURL(u)}catch(e){}});for(const k in IMGU)delete IMGU[k];
- localStorage.removeItem(SK);G.sess=null;G.ready=false;G.base=null;G.dirty=false;G.pend=new Set();S.tabs=defaultTabs();S.active=0;render();closeModal();updBk();gateUI(true)}
+ localStorage.removeItem(SK);G.sess=null;G.ready=false;G.base=null;G.dirty=false;G.pend=new Set();S.books=[newBook('Моя книга')];S.bk=S.books[0].id;S.active=0;closeBookMenu();render();closeModal();updBk();gateUI(true)}
 /* ---- файлы: восстановить ---- */
 async function restoreFrom(t){let o;try{o=JSON.parse(t)}catch(e){bsay('Это не файл копии: не удалось разобрать содержимое.');return}
- if(!o||!Array.isArray(o.tabs)||!o.tabs.length||!o.tabs.every(x=>x&&typeof x.name==='string'&&Array.isArray(x.blocks))){bsay('В файле нет данных этого сайта.');return}
- const fix=bl=>bl.forEach(b=>{b.id=b.id||uid();if(b.items)fix(b.items)});o.tabs.forEach(x=>fix(x.blocks));
- if(G.sess)await storeInline(o.tabs);
- S.tabs=o.tabs;S.active=0;MM=null;upd();bsay('Данные восстановлены. Если это ошибка, нажмите ↶ на верхней панели.')}
+ let bs=null;if(o&&Array.isArray(o.books)&&o.books.length&&o.books.every(bookOk))bs=o.books;else if(o&&Array.isArray(o.tabs)&&o.tabs.length&&o.tabs.every(tabOk))bs=[{id:'x',name:'Книга из файла',tabs:o.tabs}];
+ if(!bs){bsay('В файле нет данных этого сайта.');return}
+ if(S.books.length+bs.length>30){bsay('Слишком много книг: можно хранить до 30. Удалите ненужные и повторите.');return}
+ const taken=new Set(S.books.map(b=>b.name)),uniq=n=>{let k=n,i=2;if(taken.has(k)){k=n+' (из файла)';while(taken.has(k))k=n+' (из файла '+(i++)+')'}taken.add(k);return k};
+ bs=bs.map(b=>({id:'b'+uid(),name:uniq(String(b.name||'Книга').slice(0,40)),tabs:b.tabs}));
+ const fix=bl=>bl.forEach(b=>{b.id=b.id||uid();if(b.items)fix(b.items)});bs.forEach(b=>b.tabs.forEach(x=>fix(x.blocks)));
+ if(G.sess)await storeInlineBooks(bs);
+ S.books.push(...bs);commit();enterBook(bs[0].id);dataChanged();bsay('Добавлено книг из файла: '+bs.length+'. Ничего из ваших прежних книг не удалено; ненужную можно удалить в меню «📚».')}
 const fr=h('input',{type:'file',accept:'.json,application/json',hidden:true});document.body.append(fr);
 fr.onchange=()=>{const f=fr.files[0];fr.value='';if(f)f.text().then(restoreFrom).catch(()=>bsay('Не удалось прочитать файл.'))};
 /* ---- смена пароля и почты ---- */
@@ -794,7 +879,7 @@ async function diag(say){const out=[];
 /* ---- окно «Аккаунт» ---- */
 /* ---- ⚙ Настройки: оформление, аккаунт, данные и облако ---- */
 function openSettings(){const st=h('p',{id:'bst'},''),info=h('p',{id:'gst',class:'sett-note'},''),pre=h('pre',{class:'gpre'});bsay=m=>{st.textContent=m};
- const refresh=()=>{info.textContent=G.ready&&conn()?'Состояние: '+statusText():'Вы не вошли в аккаунт: данные хранятся только на этом устройстве.';updBk()};
+ const refresh=()=>{const lb=bkState().last;info.textContent=(G.ready&&conn()?'Состояние: '+statusText():'Вы не вошли в аккаунт: данные хранятся только на этом устройстве.')+' · '+(lb?'Копия-файл скачивалась: '+fmtT(lb)+'.':'Копию-файл вы ещё не скачивали.');updBk()};
  const B=(l,f,c)=>h('button',{class:'it'+(c?' '+c:''),on:{click:f}},l),act=f=>async()=>{try{await f()}catch(e){bsay(errMsg(e))}refresh()};
  const box=h('div',{class:'box'},h('h3',{},'⚙ Настройки'));
  /* оформление */
@@ -807,9 +892,9 @@ function openSettings(){const st=h('p',{id:'bst'},''),info=h('p',{id:'gst',class
  else box.append(B('🔗 Войти или зарегистрироваться',()=>{closeModal();gateUI(true)}));
  /* данные и облако */
  box.append(h('div',{class:'mh'},'Данные и облако'),info);
- const copyFile=B('⬇ Скачать копию (.json)',async()=>{bsay('Готовлю копию…');dl(await backupData(),'копия');bsay('Файл скачан. Храните его в надёжном месте.')});
+ const copyFile=B('⬇ Скачать копию (.json)',async()=>{bsay('Готовлю копию…');dl(await backupData(),'копия');markBackup();refresh();bsay('Файл скачан. Положите его в надёжное место: на флешку, в облачный диск или отправьте себе на почту.')});
  if(G.ready&&conn()){
-  if(G.err==='conflict')box.append(B('⬇ Скачать мою версию и загрузить версию из облака',act(async()=>{dl(await backupData(),'моя-версия');const row=await pull(),o=await openRow(row);G.base=row.version;startApp(o.tabs,false);bsay('Загружена версия из облака.')})),B('Перезаписать облако моей версией',act(async()=>{G.force=true;G.err='';G.dirty=true;await pushNow()})));
+  if(G.err==='conflict')box.append(B('⬇ Скачать мою версию и загрузить версию из облака',act(async()=>{dl(await backupData(),'моя-версия');const row=await pull(),o=await openRow(row);G.base=row.version;startApp(o.books,false);bsay('Загружена версия из облака.')})),B('Перезаписать облако моей версией',act(async()=>{G.force=true;G.err='';G.dirty=true;await pushNow()})));
   if(G.err==='auth')box.append(B('🔑 Войти снова',()=>{closeModal();localStorage.removeItem(SK);G.sess=null;G.ready=false;gateUI(true)}));
   let armed=false;
   box.append(B('☁ Сохранить сейчас',act(async()=>{bsay('Сохраняю…');G.err='';G.dirty=true;await pushNow();bsay(G.err?'':'Готово: данные в облаке.')})),
