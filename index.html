@@ -208,6 +208,25 @@ th{background:var(--acbg);text-align:left;font-weight:600}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .cx{float:right;display:flex;gap:4px}
 .ct{font-weight:650;margin-bottom:6px}.cb{color:var(--mut)}
+.atl{display:flex;flex-direction:column;gap:6px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--bd)}
+.at{display:grid;grid-template-columns:minmax(64px,36%) 1fr auto;gap:2px 8px;align-items:start}
+.ak{color:var(--ac);font-size:13px;font-weight:650;padding-top:2px}
+.av{font-size:14.5px;min-width:0}
+.atx{border:none;background:transparent;color:var(--mut);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:6px;opacity:.6}
+.atx:hover{opacity:1;background:var(--acbg)}
+.atb{margin-top:8px}
+.atb .add{font-size:13px;padding:4px 10px}
+body.read .atb,body.read .atx,body.read .at.ae{display:none}
+body.read .atl:not(:has(.at:not(.ae))){display:none}
+.apop{position:fixed;z-index:60;width:min(310px,92vw);box-sizing:border-box;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:12px}
+.apop p{margin:0 0 8px;font-size:14px;color:var(--mut)}
+.apop .ch{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.apop .ch button{font:inherit;font-size:14px;padding:5px 11px;border:1px solid var(--bd);border-radius:999px;background:var(--bg);color:var(--tx);cursor:pointer}
+.apop .ch button:hover{background:var(--acbg);border-color:var(--ac)}
+.apop .arow{display:flex;gap:6px}
+.apop input[type=text]{flex:1;min-width:0;font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.apop .arow .go{font:inherit;font-size:14px;padding:7px 12px;border:none;border-radius:8px;background:var(--ac);color:var(--onac,#fff);cursor:pointer}
+.apop .achk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13.5px}
 #addbar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--bd);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 #addbar span{align-self:center;color:var(--mut);font-size:14px}
 #addbar button{font:inherit;font-size:14px;border:1px solid var(--ac);background:var(--acbg);color:var(--tx);border-radius:8px;padding:6px 12px;cursor:pointer}
@@ -375,7 +394,7 @@ table:b=>{const n=b.rows[0].length,W=(b.w&&b.w.length===n)?b.w.slice():Array(n).
   mk('+','c',k=>{const kk=Math.min(k,30-n);if(kk<1){toast('Максимум 30 столбцов');return}b.rows.forEach(r=>{for(let i=0;i<kk;i++)r.push('')});b.w=null}),
   mk('−','r',k=>{b.rows.length=Math.max(1,b.rows.length-k);if(b.h)b.h.length=Math.min(b.h.length,b.rows.length)}),
   mk('−','c',k=>{const keep=Math.max(1,n-k);b.rows.forEach(r=>{r.length=keep});b.w=null})))},
-cards:b=>{const g=h('div',{class:'grid'});b.cards.forEach((c,i)=>{const cd=h('div',{class:'card'},h('div',{class:'cx'},delBtn(()=>{b.cards.splice(i,1);upd()})),ed(c,'a','ct','Название'),ed(c,'b','cb','Описание…'));cd.firstChild.prepend(dh(b.cards,i,cd));dnd(cd,b.cards,i,true);g.append(cd)});
+cards:b=>{const g=h('div',{class:'grid'});b.cards.forEach((c,i)=>{const cd=h('div',{class:'card'},h('div',{class:'cx'},delBtn(()=>{b.cards.splice(i,1);upd()})),ed(c,'a','ct','Название'),ed(c,'b','cb','Описание…'),attrsUI(b,c,i));cd.firstChild.prepend(dh(b.cards,i,cd));dnd(cd,b.cards,i,true);g.append(cd)});
  return h('div',{},g,h('div',{class:'bar'},h('button',{class:'add',on:{click:()=>{b.cards.push({a:'',b:''});upd()}}},'+ Карточка')))}
 };
 function mv(list,i,d){const j=i+d;if(j<0||j>=list.length)return;[list[i],list[j]]=[list[j],list[i]];upd()}
@@ -417,6 +436,28 @@ function renderBlocks(){CS=null;const m=document.getElementById('main');m.replac
  bl.forEach((_,i)=>m.append(blockEl(bl,i,null)));
  if(!bl.length)m.append(h('p',{class:'empty'},S.edit?'Здесь пока пусто. Добавьте блок кнопками внизу.':'Здесь пока пусто.'))}
 function render(){renderMode();renderTabs();renderBlocks();renderMM();renderBookBtn()}
+/* ---- атрибуты карточек: свои пары «название — значение» (возраст, роль, тайна…) ---- */
+const ATTR_PRESETS=['Возраст','Роль','Внешность','Характер','Цель','Страх','Слабость','Тайна','Окружение','Место','Дата'];
+let APOP=null;
+const APOP_OUT=e=>{if(APOP&&!APOP.contains(e.target))closeAttrMenu()};
+function closeAttrMenu(){if(!APOP)return;APOP.remove();APOP=null;document.removeEventListener('mousedown',APOP_OUT,true);window.removeEventListener('scroll',closeAttrMenu,true)}
+const atList=c=>(c.at||[]).filter(a=>a&&(plain(a.k)||plain(a.v)));
+function addAttr(b,c,ci,name,all){const nm=String(name||'').trim(),has=t=>(t.at||[]).some(a=>plain(a.k).toLowerCase()===nm.toLowerCase());let added=0;
+ (all?b.cards:[c]).forEach(t=>{if(nm&&has(t))return;if(!t.at)t.at=[];t.at.push({k:esc(nm),v:''});added++});
+ if(!added){toast('Такой атрибут у карточки уже есть');return}
+ closeAttrMenu();upd();
+ setTimeout(()=>{const g=document.querySelector('[data-id="'+b.id+'"] .grid'),cd=g&&g.children[ci];if(!cd)return;const rows=[...cd.querySelectorAll('.at')];const row=(nm&&rows.find(r=>plain(r.querySelector('.ak').innerHTML).toLowerCase()===nm.toLowerCase()))||rows[rows.length-1];const f=row&&row.querySelector(nm?'.av':'.ak');if(f)f.focus()},40)}
+function attrMenu(btn,b,c,ci){closeAttrMenu();const used=new Set((c.at||[]).map(a=>plain(a.k).toLowerCase())),all=h('input',{type:'checkbox'}),inp=h('input',{type:'text',maxLength:40,placeholder:'Свой атрибут, например «Рост»',autocomplete:'off'}),chips=h('div',{class:'ch'});
+ ATTR_PRESETS.filter(p=>!used.has(p.toLowerCase())).forEach(p=>chips.append(h('button',{type:'button',on:{click:()=>addAttr(b,c,ci,p,all.checked)}},p)));
+ const own=()=>addAttr(b,c,ci,inp.value,all.checked);
+ inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();own()}if(e.key==='Escape')closeAttrMenu()});
+ const pop=h('div',{class:'apop'},h('p',{},'Выберите атрибут или введите свой'),chips,h('div',{class:'arow'},inp,h('button',{type:'button',class:'go',on:{click:own}},'Добавить')),h('label',{class:'achk'},all,'Добавить во все карточки этого блока'));
+ document.body.append(pop);APOP=pop;const r=btn.getBoundingClientRect(),w=pop.offsetWidth||310,ph=pop.offsetHeight||240;
+ pop.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';pop.style.top=(r.bottom+6+ph>innerHeight&&r.top-ph-6>0?r.top-ph-6:r.bottom+6)+'px';
+ document.addEventListener('mousedown',APOP_OUT,true);inp.focus({preventScroll:true});setTimeout(()=>window.addEventListener('scroll',closeAttrMenu,true),0)}
+function attrsUI(b,c,ci){const wrap=h('div',{class:'atw'});
+ if(c.at&&c.at.length){const list=h('div',{class:'atl'});c.at.forEach((a,i)=>list.append(h('div',{class:'at'+(!plain(a.k)&&!plain(a.v)?' ae':'')},ed(a,'k','ak','Атрибут'),ed(a,'v','av','Значение'),h('button',{type:'button',class:'atx',title:'Убрать атрибут',on:{click:()=>{c.at.splice(i,1);if(!c.at.length)delete c.at;upd()}}},'✕'))));wrap.append(list)}
+ wrap.append(h('div',{class:'atb'},h('button',{type:'button',class:'add',title:'Добавить к карточке атрибут: возраст, роль, тайна и т. д.',on:{click:ev=>attrMenu(ev.currentTarget,b,c,ci)}},'+ Атрибут')));return wrap}
 const NEW={h:()=>({t:'h',lv:2,x:''}),p:()=>({t:'p',x:''}),table:()=>({t:'table',rows:[['','',''],['','',''],['','','']]}),warn:()=>({t:'warn',y:'w',x:''}),cards:()=>({t:'cards',cards:[{a:'',b:''},{a:'',b:''}]})};
 const pl=document.getElementById('plus'),pp=document.getElementById('pp');
 const closePP=()=>pp.classList.remove('open');
@@ -432,7 +473,7 @@ const fire=e=>e.dispatchEvent(new Event('input',{bubbles:true}));
 const WHITE_RE=/(?<![-\w])color:\s*(?:rgb\(\s*255\s*,\s*255\s*,\s*25[45]\s*\)|#fff(?:fff|ffe)?(?![0-9a-f])|white(?![a-z-]))/gi;
 function adaptColors(e){e.querySelectorAll('[style*="color"]').forEach(x=>{const st=x.getAttribute('style')||'';if(/(?<![-\w])color:\s*rgb\(\s*255\s*,\s*255\s*,\s*254\s*\)/i.test(st))x.setAttribute('style',st.replace(/(?<![-\w])color:\s*[^;]+/i,'color: var(--tx)'))})}
 function fixColors(tabs){const f=v=>typeof v==='string'?v.replace(WHITE_RE,'color: var(--tx)'):v;
- const walk=bl=>bl.forEach(b=>{if('x' in b)b.x=f(b.x);if(b.rows)b.rows=b.rows.map(r=>r.map(f));if(b.cards)b.cards.forEach(c=>{c.a=f(c.a);c.b=f(c.b)});if(b.items)walk(b.items)});tabs.forEach(t=>walk(t.blocks))}
+ const walk=bl=>bl.forEach(b=>{if('x' in b)b.x=f(b.x);if(b.rows)b.rows=b.rows.map(r=>r.map(f));if(b.cards)b.cards.forEach(c=>{c.a=f(c.a);c.b=f(c.b);(c.at||[]).forEach(a=>{a.k=f(a.k);a.v=f(a.v)})});if(b.items)walk(b.items)});tabs.forEach(t=>walk(t.blocks))}
 function fmt(cmd,val){const e=curEd();if(!e){toast('Сначала выделите текст внутри блока');return}
  if(cmd==='foreColor'&&val!=='ADAPT'){const m=/^#([0-9a-f]{6})$/i.exec(val);if(m){const n=parseInt(m[1],16),L=(0.299*(n>>16)+0.587*((n>>8)&255)+0.114*(n&255))/255;if(L>0.93||L<0.07){val='ADAPT';toast('Чёрный и белый заменены на основной цвет темы, чтобы текст не сливался с фоном')}}}
  document.execCommand('styleWithCSS',false,true);document.execCommand(cmd,false,val==='ADAPT'?'#fffffe':val);if(cmd==='foreColor'&&val==='ADAPT')adaptColors(e);fire(e)}
@@ -605,7 +646,7 @@ function cdnd(el,b,i,n){
   b.rows.forEach(r=>{const[m]=r.splice(f,1);r.splice(to,0,m)});if(b.w&&b.w.length===n){const[m]=b.w.splice(f,1);b.w.splice(to,0,m)}upd()})}
 function blockText(b){
  if(b.t==='table')return{t:toTSV(b.rows.map(r=>r.map(ctext))),h:'<table>'+b.rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</table>'};
- if(b.t==='cards')return{t:b.cards.map(c=>ctext(c.a)+(c.b?'\n'+ctext(c.b):'')).join('\n\n'),h:b.cards.map(c=>'<p><b>'+c.a+'</b><br>'+c.b+'</p>').join('')};
+ if(b.t==='cards')return{t:b.cards.map(c=>ctext(c.a)+(c.b?'\n'+ctext(c.b):'')+atList(c).map(a=>'\n'+ctext(a.k)+': '+ctext(a.v)).join('')).join('\n\n'),h:b.cards.map(c=>'<p><b>'+c.a+'</b><br>'+c.b+atList(c).map(a=>'<br><i>'+a.k+':</i> '+a.v).join('')+'</p>').join('')};
  if(b.t==='group'){const p=b.items.map(blockText);return{t:p.map(x=>x.t).join('\n\n'),h:p.map(x=>x.h).join('')}}
  if(b.t==='img')return{t:ctext(b.x),h:b.x?'<p>'+b.x+'</p>':''};
  if(b.t==='h'){const l=Math.min(3,Math.max(1,b.lv||2));return{t:ctext(b.x),h:'<h'+l+'>'+b.x+'</h'+l+'>'}}
@@ -636,7 +677,7 @@ function tabDnd(b,i){
 /* поиск */
 const q=document.getElementById('q'),sres=document.getElementById('sres');
 const clearQ=()=>{if(q.value&&document.activeElement!==q&&/@/.test(q.value))q.value=''};window.addEventListener('pageshow',clearQ);setTimeout(clearQ,300);setTimeout(clearQ,1500);
-const btxt=b=>b.t==='table'?plain(b.rows.flat().join(' | ')):b.t==='cards'?plain(b.cards.map(c=>c.a+' — '+c.b).join(' | ')):plain(b.x);
+const btxt=b=>b.t==='table'?plain(b.rows.flat().join(' | ')):b.t==='cards'?plain(b.cards.map(c=>c.a+' — '+c.b+atList(c).map(a=>' · '+a.k+': '+a.v).join('')).join(' | ')):plain(b.x);
 function doSearch(){const v=q.value.trim().toLowerCase();sres.replaceChildren();if(!v){sres.classList.remove('on');return}
  const out=[],add=(ti,id,head,txt)=>{const k=txt.toLowerCase().indexOf(v);if(k>=0)out.push({ti,id,head,txt,k})};
  S.tabs.forEach((t,ti)=>{add(ti,null,'Вкладка',t.name);const w=bl=>bl.forEach(b=>{if(b.t==='group')w(b.items);else add(ti,b.id,TN[b.t],btxt(b))});w(t.blocks)});
@@ -674,7 +715,7 @@ const TOUR_STEPS=[
  {sel:'#bkc',t:'Ваши книги',x:'У каждой книги свои вкладки и свои записи. Здесь можно создать новую книгу, переименовать или удалить её и переключиться между книгами.'},
  {sel:'#tabs',t:'Вкладки',x:'Вкладки — это разделы книги: «Сюжет», «Герои» и любые другие. Нажмите, чтобы открыть. Двойной клик по открытой вкладке переименует её, а «+» в конце добавит новую. Колёсико мыши на вкладке откроет её в отдельном окне.'},
  {sel:'#mode',t:'Правка и чтение',x:'В режиме «Правка» можно менять текст и блоки. «Чтение» — только просмотр: так ничего не удалится случайно.'},
- {sel:'#plus',pp:1,t:'Добавляйте блоки',x:'Кнопка «+» добавляет блок: заголовок, текст, таблицу, плашку для важных заметок, карточки (например, для героев) или изображение.'},
+ {sel:'#plus',pp:1,t:'Добавляйте блоки',x:'Кнопка «+» добавляет блок: заголовок, текст, таблицу, плашку для важных заметок, карточки (для героев, мест и т. п.: название, описание и свои атрибуты вроде возраста или роли) или изображение.'},
  {sel:'#ftog',t:'Оформление текста',x:'Здесь жирный и курсив, шрифт, размер, цвет, списки. Шрифт и размер можно выбрать ещё до того, как начнёте печатать. Ошиблись? Ctrl+Z вернёт действие назад.'},
  {sel:'#main',t:'Ваши записи',x:'Каждый блок — отдельный кусочек плана. Нажмите на текст, чтобы писать. За значок ⠿ блок можно перетащить и поменять порядок.'},
  {sel:'.sr',t:'Поиск',x:'Поиск ищет по всем вкладкам открытой книги: введите слово, и сайт покажет, где оно встречается.'},
