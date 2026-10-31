@@ -1,0 +1,172 @@
+/* Таблицы и их элементы управления. */
+.rs {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+  touch-action: none;
+}
+.rs:hover,
+.rs:active {
+  background: rgba(107, 91, 210, 0.4);
+}
+.hrow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.hrow select {
+  margin: 0;
+  flex: none;
+}
+.hrow .ed {
+  flex: 1;
+}
+tr.dr-b td {
+  box-shadow: inset 0 3px 0 0 var(--ac);
+}
+tr.dr-a td {
+  box-shadow: inset 0 -3px 0 0 var(--ac);
+}
+.rh {
+  position: absolute;
+  left: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none !important;
+  background: transparent !important;
+  padding: 0 2px !important;
+  font-size: 12px;
+}
+td:first-child .ed {
+  padding-left: 20px;
+}
+.tw {
+  overflow-x: auto;
+}
+table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  min-width: 480px;
+  background: var(--card);
+}
+th,
+td {
+  position: relative;
+  border: 1px solid var(--bd);
+  padding: 0;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+td .ed,
+th .ed {
+  padding: 8px 10px;
+  min-height: 2.4em;
+}
+th {
+  background: var(--acbg);
+  text-align: left;
+  font-weight: 600;
+}
+th.dr-b {
+  box-shadow: inset 3px 0 0 var(--ac);
+}
+th.dr-a {
+  box-shadow: inset -3px 0 0 var(--ac);
+}
+.ch {
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  transform: translateX(-50%) rotate(90deg);
+  border: none !important;
+  background: transparent !important;
+  padding: 0 2px !important;
+  font-size: 12px;
+  line-height: 1;
+}
+.csel {
+  background: rgba(107, 91, 210, 0.22) !important;
+  outline: 2px solid var(--ac);
+  outline-offset: -2px;
+}
+.tw.sel-mode .ed {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: cell;
+}
+.cntl {
+  font-size: 14px;
+  color: var(--mut);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cnt {
+  width: 58px;
+  font: inherit;
+  font-size: 14px;
+  padding: 4px 6px;
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--tx);
+}
+.cmenu {
+  position: fixed;
+  z-index: 60;
+  min-width: 240px;
+  padding: 6px;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cmi {
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--tx);
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.cmi:hover:not(:disabled) {
+  background: var(--acbg);
+}
+.cmi.dng {
+  color: #d9534f;
+}
+.cmi:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.cmenu hr {
+  border: none;
+  border-top: 1px solid var(--bd);
+  margin: 3px 0;
+  width: 100%;
+}
+.rsr {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 8px;
+  cursor: row-resize;
+  z-index: 2;
+  touch-action: none;
+}
+.rsr:hover,
+.rsr:active {
+  background: rgba(107, 91, 210, 0.4);
+}

@@ -1,0 +1,113 @@
+/* Цвета и темы оформления (переменные цветов). */
+:root {
+  --bg: #faf8f5;
+  --card: #fff;
+  --tx: #2b2a28;
+  --mut: #8a857d;
+  --bd: #e4dfd7;
+  --ac: #6b5bd2;
+  --acbg: #efecfb;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #1c1b1a;
+    --card: #262523;
+    --tx: #eceae6;
+    --mut: #9a958c;
+    --bd: #3a3835;
+    --ac: #a99cff;
+    --acbg: #2e2b45;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #1c1b1a;
+  --card: #262523;
+  --tx: #eceae6;
+  --mut: #9a958c;
+  --bd: #3a3835;
+  --ac: #a99cff;
+  --acbg: #2e2b45;
+}
+:root[data-theme='sakura'] {
+  --bg: #fff3f6;
+  --card: #fffafb;
+  --tx: #3b2a31;
+  --mut: #9a7b86;
+  --bd: #f1d4dc;
+  --ac: #d6457a;
+  --acbg: #fde3ec;
+  --onac: #fff;
+  color-scheme: light;
+}
+:root[data-theme='forest'] {
+  --bg: #eff4eb;
+  --card: #fafcf7;
+  --tx: #22301f;
+  --mut: #6b7f64;
+  --bd: #d0dcc6;
+  --ac: #3b8450;
+  --acbg: #dcefd9;
+  --onac: #fff;
+  color-scheme: light;
+}
+:root[data-theme='sunset'] {
+  --bg: #fff2e5;
+  --card: #fffaf3;
+  --tx: #3a2418;
+  --mut: #9b7a63;
+  --bd: #f0d4ba;
+  --ac: #e0562f;
+  --acbg: #fddfce;
+  --onac: #fff;
+  color-scheme: light;
+}
+:root[data-theme='coffee'] {
+  --bg: #ece0cd;
+  --card: #f6eddf;
+  --tx: #3b2e22;
+  --mut: #85715b;
+  --bd: #d6c5aa;
+  --ac: #8a5628;
+  --acbg: #e7d8bf;
+  --onac: #fff;
+  color-scheme: light;
+}
+:root[data-theme='ocean'] {
+  --bg: #0e1d2a;
+  --card: #152a3b;
+  --tx: #e3f0f9;
+  --mut: #84a3b8;
+  --bd: #244059;
+  --ac: #4fc3f7;
+  --acbg: #173a52;
+  --onac: #06222f;
+  color-scheme: dark;
+}
+:root[data-theme='neon'] {
+  --bg: #0d0b1a;
+  --card: #171330;
+  --tx: #f1eaff;
+  --mut: #9c8fc9;
+  --bd: #2f2764;
+  --ac: #ff4fd8;
+  --acbg: #2b1650;
+  --onac: #1a0518;
+  color-scheme: dark;
+}
+:root[data-theme='terminal'] {
+  --bg: #050805;
+  --card: #0b120b;
+  --tx: #b6ffb6;
+  --mut: #5fa05f;
+  --bd: #1c3a1c;
+  --ac: #39ff14;
+  --acbg: #0f2a0f;
+  --onac: #021002;
+  color-scheme: dark;
+}
+:root[data-theme='terminal'] body {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}

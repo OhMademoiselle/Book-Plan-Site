@@ -1,0 +1,93 @@
+/* Режимы: чтение и выделение нескольких блоков. */
+body.read .rs,
+body.read .dh,
+body.mm .rs,
+body.mm .dh {
+  display: none;
+}
+body.read .blk.anc::before,
+body.mm .blk.anc::before {
+  display: none;
+}
+body:not(.read) main {
+  max-width: 924px;
+  padding-right: 92px;
+}
+body:not(.read) .grp {
+  padding-right: 92px;
+}
+body.read .cap:empty {
+  display: none;
+}
+body.mm main {
+  padding-bottom: 110px;
+}
+body.mm #toast {
+  bottom: 84px;
+}
+body.read .atb,
+body.read .atx,
+body.read .at.ae {
+  display: none;
+}
+body.read .atl:not(:has(.at:not(.ae))) {
+  display: none;
+}
+body.mm #mbar {
+  display: flex;
+}
+body.mm #fmt,
+body.mm .tools,
+body.mm .fold,
+body.mm .bar,
+body.mm select,
+body.mm .del {
+  display: none;
+}
+body.mm .blk.top {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    box-shadow 0.15s,
+    background 0.15s;
+}
+body.mm .blk.top .ed {
+  pointer-events: none;
+}
+body.mm .blk.top:hover {
+  box-shadow:
+    0 0 0 2px var(--ac),
+    0 0 18px 3px var(--ac);
+}
+body.read .tools,
+body.read #fmt,
+body.read .bar,
+body.read select,
+body.read .del,
+body.read .tab.new {
+  display: none;
+}
+body.read main {
+  padding-bottom: 50px;
+}
+body.read .ed:empty::before {
+  content: '';
+}
+body.read .tab.on {
+  cursor: default;
+}
+body.read #toast {
+  bottom: 24px;
+}
+body:not(.read) th .ed {
+  padding-top: 16px;
+}
+body.read .rsr,
+body.mm .rsr {
+  display: none;
+}
+body.read .irs,
+body.mm .irs {
+  display: none;
+}

@@ -1,0 +1,65 @@
+/* Вкладки книги. */
+.tab.on {
+  background: var(--card);
+  color: var(--tx);
+  font-weight: 600;
+  cursor: text;
+  outline: none;
+}
+.tab.dr-b {
+  box-shadow: -3px 0 0 var(--ac);
+}
+.tab.dr-a {
+  box-shadow: 3px 0 0 var(--ac);
+}
+button.tab.on {
+  cursor: default;
+}
+.tab {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font: inherit;
+  border: 1px solid var(--bd);
+  border-bottom: none;
+  background: transparent;
+  color: var(--mut);
+  padding: 8px 14px;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 20px;
+}
+.tab.new {
+  color: var(--ac);
+  border-style: dashed;
+  padding: 8px 13px;
+  font-weight: 600;
+}
+#tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 0 20px 2px;
+  max-width: 860px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--bd);
+  max-height: 84px;
+  overflow-y: auto;
+  align-content: flex-start;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bd) transparent;
+}
+#tabs::-webkit-scrollbar {
+  width: 8px;
+}
+#tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+#tabs::-webkit-scrollbar-thumb {
+  background: var(--bd);
+  border-radius: 8px;
+}
+#tabs::-webkit-scrollbar-thumb:hover {
+  background: var(--mut);
+}

@@ -1,0 +1,125 @@
+/* Обучение для новых пользователей. */
+#tour {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+}
+#tour .ts {
+  position: absolute;
+  inset: 0;
+}
+#tour.c .ts {
+  background: rgba(0, 0, 0, 0.58);
+}
+#tour .th {
+  position: absolute;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 9999px rgba(0, 0, 0, 0.58),
+    0 0 0 3px var(--ac);
+  transition: all 0.25s;
+  pointer-events: none;
+}
+#tour.c .th {
+  display: none;
+}
+#tour .tc {
+  position: absolute;
+  width: min(360px, calc(100vw - 24px));
+  box-sizing: border-box;
+  background: var(--card);
+  color: var(--tx);
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  padding: 18px 18px 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+#tour.c .tc {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100vw - 24px));
+  padding: 26px 24px 18px;
+  text-align: center;
+}
+#tour .tc h4 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+#tour.c .tc h4 {
+  font-size: 23px;
+}
+#tour .tc p {
+  margin: 0 0 14px;
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+#tour .tp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--mut);
+  margin-bottom: 12px;
+}
+#tour.c .tp {
+  justify-content: center;
+}
+#tour .tdots {
+  display: flex;
+  gap: 4px;
+}
+#tour .tdots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--bd);
+}
+#tour .tdots i.on {
+  background: var(--ac);
+}
+#tour .tbtns {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+#tour.c .tbtns {
+  justify-content: center;
+  flex-direction: column-reverse;
+  gap: 6px;
+}
+#tour .tbtns .sk {
+  margin-right: auto;
+  border: none;
+  background: transparent;
+  color: var(--mut);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 6px 4px;
+}
+#tour.c .tbtns .sk {
+  margin: 0;
+}
+#tour .tbtns .b,
+#tour .tbtns .n {
+  font: inherit;
+  font-size: 15px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid var(--bd);
+  background: var(--card);
+  color: var(--tx);
+}
+#tour .tbtns .n {
+  background: var(--ac);
+  color: var(--onac, #fff);
+  border-color: var(--ac);
+  font-weight: 600;
+}
+#tour.c .tbtns .n {
+  padding: 12px 28px;
+  font-size: 17px;
+}
