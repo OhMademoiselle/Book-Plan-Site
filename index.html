@@ -7,7 +7,7 @@
     <!-- Страница может обращаться только к своему проекту Supabase. Если смените проект, обновите адрес в connect-src здесь и в js/config.js. -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' blob: https://jmwgsvzxnfgwbrtwiyse.supabase.co; base-uri 'none'; form-action 'none'"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self' blob: https://jmwgsvzxnfgwbrtwiyse.supabase.co; base-uri 'none'; form-action 'none'"
     />
     <title>План книги</title>
     <meta
@@ -19,17 +19,20 @@
     <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <meta name="theme-color" content="#8b7bff" />
-    <link rel="stylesheet" href="css/themes.css?v=202610310902" />
-    <link rel="stylesheet" href="css/base.css?v=202610310902" />
-    <link rel="stylesheet" href="css/header.css?v=202610310902" />
-    <link rel="stylesheet" href="css/tabs.css?v=202610310902" />
-    <link rel="stylesheet" href="css/toolbar.css?v=202610310902" />
-    <link rel="stylesheet" href="css/blocks.css?v=202610310902" />
-    <link rel="stylesheet" href="css/tables.css?v=202610310902" />
-    <link rel="stylesheet" href="css/overlays.css?v=202610310902" />
-    <link rel="stylesheet" href="css/tour.css?v=202610310902" />
-    <link rel="stylesheet" href="css/modes.css?v=202610310902" />
-    <script src="js/theme-boot.js?v=202610310902"></script>
+    <link rel="stylesheet" href="css/fonts.css?v=202611030641" />
+    <link rel="stylesheet" href="css/themes.css?v=202611030641" />
+    <link rel="stylesheet" href="css/base.css?v=202611030641" />
+    <link rel="stylesheet" href="css/header.css?v=202611030641" />
+    <link rel="stylesheet" href="css/tabs.css?v=202611030641" />
+    <link rel="stylesheet" href="css/toolbar.css?v=202611030641" />
+    <link rel="stylesheet" href="css/layout.css?v=202611030641" />
+    <link rel="stylesheet" href="css/outline.css?v=202611030641" />
+    <link rel="stylesheet" href="css/blocks.css?v=202611030641" />
+    <link rel="stylesheet" href="css/tables.css?v=202611030641" />
+    <link rel="stylesheet" href="css/overlays.css?v=202611030641" />
+    <link rel="stylesheet" href="css/tour.css?v=202611030641" />
+    <link rel="stylesheet" href="css/modes.css?v=202611030641" />
+    <script src="js/theme-boot.js?v=202611030641"></script>
   </head>
   <body>
     <noscript>Для работы сайта нужен включённый JavaScript.</noscript>
@@ -66,89 +69,127 @@
       </symbol>
     </svg>
     <header>
-      <h1 class="logo" title="План книги">
-        <svg class="lgm" viewBox="0 0 64 64" aria-hidden="true"><use href="#lg" /></svg
-        ><span class="lgt"><b>План</b> <i>книги</i></span>
-      </h1>
-      <div class="bkw">
+      <div class="hrow">
         <button
-          id="bkc"
-          class="bkc"
+          id="obtn"
+          class="ib"
           type="button"
-          title="Книги: переключить, создать, удалить"
-        ></button>
-        <div id="bkm" class="bkm"></div>
+          aria-label="Структура вкладки"
+          title="Структура вкладки"
+        >
+          ☰
+        </button>
+        <h1 class="logo" title="План книги">
+          <svg class="lgm" viewBox="0 0 64 64" aria-hidden="true"><use href="#lg" /></svg
+          ><span class="lgt"><b>План</b> <i>книги</i></span>
+        </h1>
+        <div class="bkw">
+          <button
+            id="bkc"
+            class="bkc"
+            type="button"
+            title="Книги: переключить, создать, удалить"
+          ></button>
+          <div id="bkm" class="bkm"></div>
+        </div>
+        <div class="sr">
+          <input
+            id="q"
+            type="search"
+            name="plan-search"
+            placeholder="🔍 Поиск по сайту…"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            enterkeyhint="search"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-bwignore="true"
+            data-form-type="other"
+          />
+          <div id="sres"></div>
+        </div>
+        <div id="hacts"></div>
+        <button id="bk" type="button" title="Состояние сохранения. Нажмите, чтобы сохранить сейчас">
+          ● Сохранено
+        </button>
+        <div id="mode"></div>
+        <button id="st" class="seg" type="button" title="Настройки" aria-label="Настройки">
+          ⚙<span class="lbl"> Настройки</span>
+        </button>
       </div>
-      <div class="sr">
-        <input
-          id="q"
-          type="search"
-          name="plan-search"
-          placeholder="🔍 Поиск по сайту…"
-          autocomplete="off"
-          autocapitalize="off"
-          spellcheck="false"
-          enterkeyhint="search"
-          data-lpignore="true"
-          data-1p-ignore="true"
-          data-bwignore="true"
-          data-form-type="other"
-        />
-        <div id="sres"></div>
-      </div>
-      <button id="bk" type="button" title="Состояние сохранения. Нажмите, чтобы сохранить сейчас">
-        ● Сохранено</button
-      ><button id="st" class="seg" type="button" title="Настройки" aria-label="Настройки">
-        ⚙ Настройки
-      </button>
-      <div id="mode"></div>
+      <div id="tabs"></div>
     </header>
-    <div id="tabs"></div>
-    <div id="fmt">
-      <span class="pw"
-        ><button id="plus" type="button" title="Добавить блок">+</button>
-        <div id="pp"></div></span
-      ><button id="ftog" type="button"></button>
-      <div id="fp"></div>
+    <div id="app">
+      <aside id="outline" aria-label="Структура вкладки">
+        <h5>Структура</h5>
+        <nav id="olist"></nav>
+        <div class="pw">
+          <button id="plus" type="button" title="Добавить блок">＋ Добавить блок</button>
+          <div id="pp"></div>
+        </div>
+      </aside>
+      <main id="main"></main>
+      <aside id="fmt" aria-label="Свойства">
+        <h5>Свойства</h5>
+        <section class="isec">
+          <h6>Текст</h6>
+          <div id="fp"></div>
+        </section>
+        <section class="isec">
+          <h6>Действия</h6>
+          <div id="fact"></div>
+        </section>
+      </aside>
     </div>
-    <main id="main"></main>
+    <button
+      id="fbtn"
+      class="fab"
+      type="button"
+      aria-label="Свойства текста"
+      title="Свойства текста"
+    >
+      Aa
+    </button>
+    <div id="scrim"></div>
     <div id="gate"></div>
     <div id="mbar"></div>
     <div id="toast"></div>
     <div id="modal"></div>
-    <script src="js/config.js?v=202610310902"></script>
-    <script src="js/utils.js?v=202610310902"></script>
-    <script src="js/state.js?v=202610310902"></script>
-    <script src="js/model.js?v=202610310902"></script>
-    <script src="js/storage.js?v=202610310902"></script>
-    <script src="js/sanitize.js?v=202610310902"></script>
-    <script src="js/ui.js?v=202610310902"></script>
-    <script src="js/format.js?v=202610310902"></script>
-    <script src="js/clipboard.js?v=202610310902"></script>
-    <script src="js/blocks.js?v=202610310902"></script>
-    <script src="js/cards.js?v=202610310902"></script>
-    <script src="js/render.js?v=202610310902"></script>
-    <script src="js/addmenu.js?v=202610310902"></script>
-    <script src="js/links.js?v=202610310902"></script>
-    <script src="js/multiselect.js?v=202610310902"></script>
-    <script src="js/history.js?v=202610310902"></script>
-    <script src="js/tables.js?v=202610310902"></script>
-    <script src="js/dnd.js?v=202610310902"></script>
-    <script src="js/block-actions.js?v=202610310902"></script>
-    <script src="js/tabs.js?v=202610310902"></script>
-    <script src="js/toolbar.js?v=202610310902"></script>
-    <script src="js/search.js?v=202610310902"></script>
-    <script src="js/cloud.js?v=202610310902"></script>
-    <script src="js/images.js?v=202610310902"></script>
-    <script src="js/files.js?v=202610310902"></script>
-    <script src="js/sync.js?v=202610310902"></script>
-    <script src="js/auth.js?v=202610310902"></script>
-    <script src="js/account.js?v=202610310902"></script>
-    <script src="js/settings.js?v=202610310902"></script>
-    <script src="js/themes.js?v=202610310902"></script>
-    <script src="js/books.js?v=202610310902"></script>
-    <script src="js/tour.js?v=202610310902"></script>
-    <script src="js/backup-reminder.js?v=202610310902"></script>
-    <script src="js/main.js?v=202610310902"></script>
+    <script src="js/config.js?v=202611030641"></script>
+    <script src="js/utils.js?v=202611030641"></script>
+    <script src="js/state.js?v=202611030641"></script>
+    <script src="js/model.js?v=202611030641"></script>
+    <script src="js/storage.js?v=202611030641"></script>
+    <script src="js/sanitize.js?v=202611030641"></script>
+    <script src="js/ui.js?v=202611030641"></script>
+    <script src="js/format.js?v=202611030641"></script>
+    <script src="js/clipboard.js?v=202611030641"></script>
+    <script src="js/blocks.js?v=202611030641"></script>
+    <script src="js/cards.js?v=202611030641"></script>
+    <script src="js/render.js?v=202611030641"></script>
+    <script src="js/outline.js?v=202611030641"></script>
+    <script src="js/addmenu.js?v=202611030641"></script>
+    <script src="js/links.js?v=202611030641"></script>
+    <script src="js/multiselect.js?v=202611030641"></script>
+    <script src="js/history.js?v=202611030641"></script>
+    <script src="js/tables.js?v=202611030641"></script>
+    <script src="js/dnd.js?v=202611030641"></script>
+    <script src="js/block-actions.js?v=202611030641"></script>
+    <script src="js/tabs.js?v=202611030641"></script>
+    <script src="js/toolbar.js?v=202611030641"></script>
+    <script src="js/search.js?v=202611030641"></script>
+    <script src="js/cloud.js?v=202611030641"></script>
+    <script src="js/images.js?v=202611030641"></script>
+    <script src="js/files.js?v=202611030641"></script>
+    <script src="js/sync.js?v=202611030641"></script>
+    <script src="js/auth.js?v=202611030641"></script>
+    <script src="js/account.js?v=202611030641"></script>
+    <script src="js/settings.js?v=202611030641"></script>
+    <script src="js/themes.js?v=202611030641"></script>
+    <script src="js/books.js?v=202611030641"></script>
+    <script src="js/tour.js?v=202611030641"></script>
+    <script src="js/backup-reminder.js?v=202611030641"></script>
+    <script src="js/main.js?v=202611030641"></script>
   </body>
 </html>
