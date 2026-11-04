@@ -54,7 +54,7 @@
   font-size: 15.5px;
   line-height: 1.55;
 }
-#tour .tp {
+#tour .tprog {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -62,7 +62,7 @@
   color: var(--mut);
   margin-bottom: 12px;
 }
-#tour.c .tp {
+#tour.c .tprog {
   justify-content: center;
 }
 #tour .tdots {
@@ -122,4 +122,10 @@
 #tour.c .tbtns .n {
   padding: 12px 28px;
   font-size: 17px;
+}
+
+#tour .tbtns .b,
+#tour .tbtns .n,
+#tour .tbtns .sk {
+  white-space: nowrap;
 }
