@@ -1,20 +1,9 @@
-/* Панель «Настройки текста» и кнопки отмены/возврата. */
+/* Панель «Свойства» справа (оформление текста, действия) и кнопки отмены/возврата в шапке. */
 const fm = document.getElementById('fp');
-const fw = document.getElementById('fmt'),
-  ft = document.getElementById('ftog');
+const fw = document.getElementById('fmt'); /* панель «Свойства» справа */
 fw.addEventListener('mousedown', e => {
   if (e.target.type !== 'color' && e.target.type !== 'number') e.preventDefault();
 });
-const applyFmt = () => {
-  fw.classList.toggle('open', !!S.fmtOpen);
-  ft.textContent = 'Aa Настройки текста ' + (S.fmtOpen ? '▴' : '▾');
-};
-ft.onclick = () => {
-  S.fmtOpen = !S.fmtOpen;
-  save();
-  applyFmt();
-};
-applyFmt();
 const FB = (l, t, f) => fm.append(h('button', { title: t, on: { click: f } }, l));
 FB(h('b', {}, 'Ж'), 'Жирный', () => fmt('bold'));
 FB(h('i', {}, 'К'), 'Курсив', () => fmt('italic'));
@@ -299,11 +288,17 @@ cr.append(
     'Сброс'
   )
 );
+/* кнопки действий в панели «Свойства» (блок «Действия») */
 const TB = (l, t, f) =>
-  fw.insertBefore(
-    h('button', { type: 'button', title: t, on: { click: f } }, l),
-    document.getElementById('fp')
-  );
+  document
+    .getElementById('fact')
+    .appendChild(h('button', { type: 'button', title: t, on: { click: f } }, l));
+/* отмена и возврат живут в шапке */
+const HB = (l, t, f) =>
+  document
+    .getElementById('hacts')
+    .appendChild(h('button', { type: 'button', title: t, 'aria-label': t, on: { click: f } }, l));
+document.getElementById('hacts').addEventListener('mousedown', e => e.preventDefault());
 const lk = TB('🔗 Ссылка на блок', 'Сделать ссылку на другой блок', () => {
   if (inLink()) unlink();
   else openPicker();
@@ -323,10 +318,8 @@ const updLink = () => {
 };
 document.addEventListener('selectionchange', updLink);
 TB('🗑 Очистить вкладку', 'Удалить все блоки на этой вкладке (с подтверждением)', () => clearTab());
-const bu = TB('↶', 'Отменить действие (Ctrl+Z)', () => undo()),
-  bd = TB('↷', 'Вернуть действие (Ctrl+Shift+Z)', () => redo());
-bu.style.marginLeft = 'auto';
-bu.style.fontSize = bd.style.fontSize = '18px';
+const bu = HB('↶', 'Отменить действие (Ctrl+Z)', () => undo()),
+  bd = HB('↷', 'Вернуть действие (Ctrl+Shift+Z)', () => redo());
 document.addEventListener('keydown', ev => {
   if (!S.edit || !(ev.ctrlKey || ev.metaKey) || ev.target.tagName === 'INPUT') return;
   if (ev.code === 'KeyZ' && !ev.shiftKey) {
