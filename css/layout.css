@@ -1,0 +1,245 @@
+/* Раскладка страницы: шапка сверху, слева структура вкладки, в центре записи, справа свойства.
+   На узких экранах (телефон, планшет) боковые панели прячутся и выезжают по кнопкам. */
+:root {
+  --hh: 112px; /* высота шапки, обновляется скриптом */
+}
+#app {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 300px;
+  max-width: 1480px;
+  margin: 0 auto;
+  align-items: start;
+}
+#outline,
+#fmt {
+  position: sticky;
+  top: var(--hh);
+  max-height: calc(100vh - var(--hh));
+  box-sizing: border-box;
+  padding: 18px 14px;
+  background: var(--card);
+}
+#outline {
+  border-right: 1px solid var(--bd);
+  overflow-y: auto;
+  min-height: calc(100vh - var(--hh));
+}
+#fmt {
+  border-left: 1px solid var(--bd);
+  min-height: calc(100vh - var(--hh));
+}
+#outline h5,
+#fmt h5 {
+  margin: 0 6px 12px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+.isec {
+  border-top: 1px solid var(--bd);
+  padding: 14px 0 6px;
+}
+.isec h6 {
+  margin: 0 6px 10px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--mut);
+  font-weight: 700;
+}
+#fp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+#fp .sp {
+  flex: 0 0 100%;
+  height: 0;
+  margin: 2px 0;
+}
+#fact {
+  display: grid;
+  gap: 6px;
+}
+#fact button {
+  width: 100%;
+  text-align: left;
+}
+#fmt .dd {
+  position: relative;
+}
+.fab,
+#fbtn {
+  display: none;
+}
+#scrim {
+  display: none;
+}
+#st .lbl {
+  display: inline;
+}
+body.read #fmt,
+body.mm #fmt,
+body.read .pw,
+body.mm .pw {
+  display: none;
+}
+body.read #app,
+body.mm #app {
+  grid-template-columns: 240px minmax(0, 1fr);
+}
+
+/* центральная колонка занимает всю доступную ширину; ширину текста ограничивает сам main */
+#app > main {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1280px) {
+  #st .lbl {
+    display: none;
+  }
+}
+
+@media (max-width: 1099px) {
+  #app,
+  body.read #app,
+  body.mm #app {
+    display: block;
+  }
+  #obtn {
+    display: inline-grid;
+  }
+  .lgt {
+    display: none;
+  }
+  #outline {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(320px, 88vw);
+    max-height: none;
+    z-index: 70;
+    padding-top: max(18px, env(safe-area-inset-top));
+    box-shadow: var(--sh2);
+    transform: translateX(-105%);
+    transition: transform 0.2s;
+  }
+  body.show-outline #outline {
+    transform: none;
+  }
+  #fmt {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    max-height: 62vh;
+    min-height: 0;
+    overflow-y: auto;
+    z-index: 70;
+    border: none;
+    border-radius: var(--r3) var(--r3) 0 0;
+    box-shadow: var(--sh2);
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+    transform: translateY(105%);
+    transition: transform 0.2s;
+  }
+  body.show-insp #fmt {
+    transform: none;
+  }
+  #fmt .ddm {
+    position: static;
+    box-shadow: none;
+    margin-top: 6px;
+    max-height: 200px;
+  }
+  .szrow {
+    flex-wrap: wrap;
+  }
+  .fab,
+  #fbtn {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    width: 52px;
+    height: 52px;
+    border: none;
+    border-radius: 16px;
+    background: var(--ac);
+    color: var(--onac, #fff);
+    font:
+      700 17px 'Manrope',
+      system-ui,
+      sans-serif;
+    box-shadow: var(--sh2);
+    z-index: 40;
+    cursor: pointer;
+  }
+  body.read #fbtn,
+  body.mm #fbtn,
+  body.show-insp #fbtn {
+    display: none;
+  }
+  body.show-outline #scrim,
+  body.show-insp #scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 20, 0.45);
+    z-index: 60;
+  }
+  body:not(.read) main {
+    padding-right: 20px;
+  }
+}
+
+@media (max-width: 760px) {
+  header {
+    padding: 8px 12px 0;
+  }
+  /* верхний ряд: меню, значок, книга, настройки; второй ряд: режим, сохранение, отмена */
+  .bkw {
+    flex: 1 1 140px;
+    order: 3;
+  }
+  .bkc {
+    width: 100%;
+    max-width: none;
+  }
+  #st {
+    order: 4;
+  }
+  #mode {
+    order: 5;
+  }
+  #mode .lbl {
+    display: none;
+  }
+  #bk {
+    order: 6;
+    margin-left: auto;
+  }
+  #hacts {
+    order: 7;
+    margin-left: 0;
+  }
+  #outline .sr {
+    max-width: none;
+    margin: 0 0 14px;
+  }
+}
+@media (max-width: 1099px) {
+  #outline .sr {
+    max-width: none;
+    margin: 0 0 14px;
+  }
+  body.show-outline #fbtn {
+    display: none;
+  }
+}
