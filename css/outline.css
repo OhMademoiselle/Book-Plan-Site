@@ -1,0 +1,109 @@
+/* Структура вкладки: список блоков слева и кнопка добавления блока. */
+#olist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 14px;
+}
+.oi {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  line-height: 1.3;
+  border: none;
+  background: transparent;
+  color: var(--tx);
+  padding: 7px 10px;
+  border-radius: var(--r1);
+  cursor: pointer;
+}
+.oi:hover {
+  background: var(--acbg);
+}
+.oi .ot {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--mut);
+}
+.oi .ox {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+}
+.oi.sub {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.oi.sub .ox {
+  font-weight: 500;
+  color: var(--mut);
+}
+.oe {
+  margin: 4px 10px;
+  color: var(--mut);
+  font-size: 13px;
+}
+.pw {
+  position: static;
+}
+#plus {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 9px 12px;
+  border: 1.5px dashed var(--bd);
+  border-radius: var(--r1);
+  background: transparent;
+  color: var(--mut);
+  cursor: pointer;
+}
+#plus:hover {
+  border-color: var(--ac);
+  color: var(--ac);
+}
+#pp {
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+  padding: 6px;
+  background: var(--bg);
+  border: 1px solid var(--bd);
+  border-radius: var(--r2);
+}
+#pp.open {
+  display: flex;
+}
+
+#pp button {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--r1);
+  background: transparent;
+  color: var(--tx);
+  cursor: pointer;
+}
+#pp button:hover {
+  background: var(--acbg);
+  color: var(--ac);
+}
+#pp hr {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--bd);
+  margin: 4px 0;
+}
