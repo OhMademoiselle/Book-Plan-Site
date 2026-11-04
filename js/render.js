@@ -5,13 +5,15 @@ function renderMode() {
   document.body.classList.toggle('read', !S.edit);
   document.getElementById('mode').replaceChildren(
     ...[
-      [true, '✏️ Правка'],
-      [false, '👁 Чтение']
-    ].map(([v, l]) =>
+      [true, '✏️', ' Правка'],
+      [false, '👁', ' Чтение']
+    ].map(([v, icon, label]) =>
       h(
         'button',
         {
           class: 'seg' + (S.edit === v ? ' on' : ''),
+          title: label.trim(),
+          'aria-label': label.trim(),
           on: {
             click: () => {
               S.edit = v;
@@ -19,7 +21,8 @@ function renderMode() {
             }
           }
         },
-        l
+        h('span', {}, icon),
+        h('span', { class: 'lbl' }, label)
       )
     )
   );
@@ -108,8 +111,8 @@ function renderTabs() {
   if (a) {
     const r = a.getBoundingClientRect(),
       c = t.getBoundingClientRect();
-    if (r.bottom > c.bottom) t.scrollTop += r.bottom - c.bottom;
-    else if (r.top < c.top) t.scrollTop -= c.top - r.top;
+    if (r.right > c.right) t.scrollLeft += r.right - c.right + 8;
+    else if (r.left < c.left) t.scrollLeft -= c.left - r.left + 8;
   }
 }
 function renderBlocks() {
@@ -133,4 +136,5 @@ function render() {
   renderBlocks();
   renderMM();
   renderBookBtn();
+  renderOutline();
 }
