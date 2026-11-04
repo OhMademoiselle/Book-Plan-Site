@@ -1,64 +1,4 @@
 /* Панель «Настройки текста» и меню добавления блока. */
-#fmt {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  position: sticky;
-  top: env(safe-area-inset-top, 0px);
-  z-index: 5;
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 8px 20px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--bd);
-}
-#fp {
-  display: none;
-  flex: 0 0 100%;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  padding-top: 8px;
-  margin-top: 2px;
-  border-top: 1px solid var(--bd);
-}
-#fmt.open #fp {
-  display: flex;
-}
-#plus {
-  font-size: 22px !important;
-  font-weight: 700;
-  width: 36px;
-  padding: 0 !important;
-  line-height: 1;
-  background: var(--ac) !important;
-  color: var(--onac, #fff) !important;
-  border-color: var(--ac) !important;
-}
-#pp {
-  display: none;
-  position: absolute;
-  left: 0;
-  top: 100%;
-  margin-top: 6px;
-  z-index: 10;
-  min-width: 210px;
-  flex-direction: column;
-  gap: 2px;
-  padding: 6px;
-  background: var(--card);
-  border: 1px solid var(--bd);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-}
-#pp.open {
-  display: flex;
-}
-.pw {
-  position: relative;
-  display: flex;
-}
 #fmt button:disabled {
   opacity: 0.35;
   cursor: default;
@@ -136,7 +76,7 @@
   background: var(--card);
   border: 1px solid var(--bd);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--sh2);
 }
 .dd.open .ddm {
   display: flex;
@@ -158,23 +98,6 @@
 }
 #fmt .ddm button.on {
   font-weight: 600;
-}
-#fmt #pp button {
-  height: auto;
-  text-align: left;
-  border: none;
-  background: transparent;
-  padding: 8px 12px;
-  font-size: 15px;
-}
-#fmt #pp button:hover {
-  background: var(--acbg);
-}
-#pp hr {
-  border: none;
-  border-top: 1px solid var(--bd);
-  margin: 4px 0;
-  width: 100%;
 }
 .lbl {
   font-size: 13px;
@@ -209,12 +132,6 @@
   border: 2px solid var(--card);
   box-shadow: 0 0 0 1px var(--bd);
 }
-.sp {
-  width: 1px;
-  height: 22px;
-  background: var(--bd);
-  margin: 0 2px;
-}
 .tp {
   display: grid;
   grid-auto-flow: column;
@@ -226,7 +143,7 @@
   background: var(--card);
   border: 1px solid var(--bd);
   border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--sh1);
 }
 .crow {
   flex: 0 0 100%;
