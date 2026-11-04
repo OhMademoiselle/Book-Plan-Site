@@ -58,6 +58,7 @@ function insertLink(b) {
   fire(e);
 }
 function go(id) {
+  closePanels();
   let ti = -1,
     anc = [];
   S.tabs.forEach((t, i) => {
