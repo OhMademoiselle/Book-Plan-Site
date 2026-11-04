@@ -15,7 +15,6 @@ S = {
   v: 2,
   active: Number(UI.active) || 0,
   edit: W2 ? false : UI.edit !== false,
-  fmtOpen: !!UI.fmtOpen,
   tabs: [
     {
       name: 'Сюжет',
@@ -84,10 +83,7 @@ const save = () => {
     acts[S.bk] = S.active;
     UI.acts = acts;
     UI.book = S.bk;
-    localStorage.setItem(
-      UIK,
-      JSON.stringify({ active: S.active, edit: S.edit, fmtOpen: S.fmtOpen, book: S.bk, acts })
-    );
+    localStorage.setItem(UIK, JSON.stringify({ active: S.active, edit: S.edit, book: S.bk, acts }));
   } catch (e) {}
 };
 const upd = () => {
