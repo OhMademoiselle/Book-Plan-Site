@@ -2,13 +2,41 @@
    На узких экранах (телефон, планшет) боковые панели прячутся и выезжают по кнопкам. */
 :root {
   --hh: 112px; /* высота шапки, обновляется скриптом */
+  --ow: 240px; /* ширина панели «Структура» (можно тянуть мышкой) */
+  --pw: 300px; /* ширина панели «Свойства» */
+  --oshow: 1; /* 0, если панель скрыта */
+  --pshow: 1;
 }
+.lo-off {
+  --oshow: 0;
+}
+.li-off {
+  --pshow: 0;
+}
+/* панели прижаты к краям экрана, центральная колонка занимает всё остальное место */
 #app {
+  position: relative;
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 300px;
-  max-width: 1480px;
-  margin: 0 auto;
+  grid-template-columns: calc(var(--ow) * var(--oshow)) minmax(0, 1fr) calc(
+      var(--pw) * var(--pshow)
+    );
   align-items: start;
+}
+#outline {
+  grid-column: 1;
+  grid-row: 1;
+}
+#app > main {
+  grid-column: 2;
+  grid-row: 1;
+}
+#fmt {
+  grid-column: 3;
+  grid-row: 1;
+}
+.lo-off #outline,
+.li-off #fmt {
+  display: none;
 }
 #outline,
 #fmt {
@@ -88,7 +116,77 @@ body.mm .pw {
 }
 body.read #app,
 body.mm #app {
-  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-columns: calc(var(--ow) * var(--oshow)) minmax(0, 1fr);
+}
+/* ручки: тянешь границу панели, и ширина меняется */
+.rz {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  z-index: 6;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+.rz:hover,
+.rz.drag,
+.rz:focus-visible {
+  background: linear-gradient(
+    to right,
+    transparent 4px,
+    var(--ac) 4px,
+    var(--ac) 6px,
+    transparent 6px
+  );
+}
+#rzo {
+  left: calc(var(--ow) * var(--oshow) - 5px);
+}
+#rzp {
+  right: calc(var(--pw) * var(--pshow) - 5px);
+}
+.lo-off #rzo,
+.li-off #rzp,
+body.read #rzp,
+body.mm #rzp {
+  display: none;
+}
+body.resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+#outline h5,
+#fmt h5 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pcl {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mut);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.pcl:hover {
+  background: var(--acbg);
+  color: var(--ac);
+}
+.ib[aria-pressed='true'] {
+  background: var(--acbg);
+  color: var(--ac);
+  border-color: transparent;
+}
+#pbtn {
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
 }
 
 /* центральная колонка занимает всю доступную ширину; ширину текста ограничивает сам main */
@@ -109,11 +207,16 @@ body.mm #app {
   body.mm #app {
     display: block;
   }
-  #obtn {
-    display: inline-grid;
-  }
-  .lgt {
+  .rz,
+  #pbtn {
     display: none;
+  }
+  .pcl {
+    font-size: 0;
+  }
+  .pcl::after {
+    content: '✕';
+    font-size: 15px;
   }
   #outline {
     position: fixed;

@@ -5,7 +5,7 @@ header {
   z-index: 20;
   background: var(--bg);
   border-bottom: 1px solid var(--bd);
-  padding: 10px 20px 0;
+  padding: 10px 14px 0;
 }
 header h1 {
   margin: 0;
@@ -17,7 +17,7 @@ header h1 {
   gap: 10px;
 }
 header h1.logo {
-  font-size: 23px;
+  font-size: 26px;
 }
 .lgm {
   width: 38px;
@@ -27,26 +27,23 @@ header h1.logo {
   box-shadow: none;
 }
 .lgt {
-  font-family:
-    'Manrope',
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-size: 26px;
   line-height: 1;
-  letter-spacing: -0.2px;
+  letter-spacing: 0;
   white-space: nowrap;
+  position: relative;
+  top: -1px;
 }
 .lgt b {
-  font-weight: 800;
+  font-weight: 700;
   color: var(--tx);
 }
 .lgt i {
-  font-style: normal;
-  font-weight: 700;
+  font-style: italic;
+  font-weight: 600;
   color: var(--ac);
-  margin-left: 1px;
+  margin-left: 2px;
 }
 .bkw {
   position: relative;
@@ -295,13 +292,11 @@ mark {
 }
 
 /* Верхний ряд шапки и кнопки-значки (отмена, возврат, структура) */
-.hrow {
+.htop {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  max-width: 1480px;
-  margin: 0 auto;
 }
 #hacts {
   display: flex;
@@ -331,7 +326,4 @@ mark {
 #hacts button:disabled {
   opacity: 0.35;
   cursor: default;
-}
-#obtn {
-  display: none;
 }

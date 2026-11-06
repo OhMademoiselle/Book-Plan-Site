@@ -107,3 +107,47 @@
   border-top: 1px solid var(--bd);
   margin: 4px 0;
 }
+
+/* группы блоков в структуре: стрелка сворачивания и переименование */
+.orow {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+}
+.orow .oi {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+.ofold {
+  flex: none;
+  width: 24px;
+  border: none;
+  border-radius: var(--r1);
+  background: transparent;
+  color: var(--mut);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+.ofold:hover {
+  background: var(--acbg);
+  color: var(--ac);
+}
+.oi.og .ox {
+  font-weight: 700;
+}
+.orn {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border: 1px solid var(--ac);
+  border-radius: var(--r1);
+  background: var(--card);
+  color: var(--tx);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--acbg);
+}

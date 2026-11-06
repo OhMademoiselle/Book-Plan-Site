@@ -44,8 +44,6 @@ button.tab.on {
   gap: 6px;
   flex-wrap: nowrap;
   padding: 8px 0 10px;
-  max-width: 1480px;
-  margin: 0 auto;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
