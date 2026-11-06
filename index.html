@@ -9,7 +9,7 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self' blob: https://jmwgsvzxnfgwbrtwiyse.supabase.co; base-uri 'none'; form-action 'none'"
     />
-    <title>План книги</title>
+    <title>Book Planner</title>
     <meta
       name="description"
       content="Планировщик сюжета книги: книги, вкладки, блоки, карточки героев."
@@ -19,20 +19,20 @@
     <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <meta name="theme-color" content="#8b7bff" />
-    <link rel="stylesheet" href="css/fonts.css?v=202611030641" />
-    <link rel="stylesheet" href="css/themes.css?v=202611030641" />
-    <link rel="stylesheet" href="css/base.css?v=202611030641" />
-    <link rel="stylesheet" href="css/header.css?v=202611030641" />
-    <link rel="stylesheet" href="css/tabs.css?v=202611030641" />
-    <link rel="stylesheet" href="css/toolbar.css?v=202611030641" />
-    <link rel="stylesheet" href="css/layout.css?v=202611030641" />
-    <link rel="stylesheet" href="css/outline.css?v=202611030641" />
-    <link rel="stylesheet" href="css/blocks.css?v=202611030641" />
-    <link rel="stylesheet" href="css/tables.css?v=202611030641" />
-    <link rel="stylesheet" href="css/overlays.css?v=202611030641" />
-    <link rel="stylesheet" href="css/tour.css?v=202611030641" />
-    <link rel="stylesheet" href="css/modes.css?v=202611030641" />
-    <script src="js/theme-boot.js?v=202611030641"></script>
+    <link rel="stylesheet" href="css/fonts.css?v=202611060315" />
+    <link rel="stylesheet" href="css/themes.css?v=202611060315" />
+    <link rel="stylesheet" href="css/base.css?v=202611060315" />
+    <link rel="stylesheet" href="css/header.css?v=202611060315" />
+    <link rel="stylesheet" href="css/tabs.css?v=202611060315" />
+    <link rel="stylesheet" href="css/toolbar.css?v=202611060315" />
+    <link rel="stylesheet" href="css/layout.css?v=202611060315" />
+    <link rel="stylesheet" href="css/outline.css?v=202611060315" />
+    <link rel="stylesheet" href="css/blocks.css?v=202611060315" />
+    <link rel="stylesheet" href="css/tables.css?v=202611060315" />
+    <link rel="stylesheet" href="css/overlays.css?v=202611060315" />
+    <link rel="stylesheet" href="css/tour.css?v=202611060315" />
+    <link rel="stylesheet" href="css/modes.css?v=202611060315" />
+    <script src="js/theme-boot.js?v=202611060315"></script>
   </head>
   <body>
     <noscript>Для работы сайта нужен включённый JavaScript.</noscript>
@@ -69,7 +69,7 @@
       </symbol>
     </svg>
     <header>
-      <div class="hrow">
+      <div class="htop">
         <button
           id="obtn"
           class="ib"
@@ -79,9 +79,9 @@
         >
           ☰
         </button>
-        <h1 class="logo" title="План книги">
+        <h1 class="logo" title="Book Planner">
           <svg class="lgm" viewBox="0 0 64 64" aria-hidden="true"><use href="#lg" /></svg
-          ><span class="lgt"><b>План</b> <i>книги</i></span>
+          ><span class="lgt"><b>Book</b> <i>Planner</i></span>
         </h1>
         <div class="bkw">
           <button
@@ -114,6 +114,16 @@
           ● Сохранено
         </button>
         <div id="mode"></div>
+        <button
+          id="pbtn"
+          class="ib"
+          type="button"
+          aria-label="Свойства: показать или скрыть"
+          title="Свойства: показать или скрыть"
+          aria-pressed="true"
+        >
+          Aa
+        </button>
         <button id="st" class="seg" type="button" title="Настройки" aria-label="Настройки">
           ⚙<span class="lbl"> Настройки</span>
         </button>
@@ -121,8 +131,35 @@
       <div id="tabs"></div>
     </header>
     <div id="app">
+      <div
+        id="rzo"
+        class="rz"
+        role="separator"
+        aria-orientation="vertical"
+        tabindex="0"
+        title="Потяните, чтобы изменить ширину (двойной щелчок — вернуть)"
+      ></div>
+      <div
+        id="rzp"
+        class="rz"
+        role="separator"
+        aria-orientation="vertical"
+        tabindex="0"
+        title="Потяните, чтобы изменить ширину (двойной щелчок — вернуть)"
+      ></div>
       <aside id="outline" aria-label="Структура вкладки">
-        <h5>Структура</h5>
+        <h5>
+          <span>Структура</span
+          ><button
+            class="pcl"
+            type="button"
+            data-p="outline"
+            title="Скрыть панель"
+            aria-label="Скрыть структуру"
+          >
+            ‹
+          </button>
+        </h5>
         <nav id="olist"></nav>
         <div class="pw">
           <button id="plus" type="button" title="Добавить блок">＋ Добавить блок</button>
@@ -131,7 +168,18 @@
       </aside>
       <main id="main"></main>
       <aside id="fmt" aria-label="Свойства">
-        <h5>Свойства</h5>
+        <h5>
+          <span>Свойства</span
+          ><button
+            class="pcl"
+            type="button"
+            data-p="insp"
+            title="Скрыть панель"
+            aria-label="Скрыть свойства"
+          >
+            ›
+          </button>
+        </h5>
         <section class="isec">
           <h6>Текст</h6>
           <div id="fp"></div>
@@ -156,40 +204,40 @@
     <div id="mbar"></div>
     <div id="toast"></div>
     <div id="modal"></div>
-    <script src="js/config.js?v=202611030641"></script>
-    <script src="js/utils.js?v=202611030641"></script>
-    <script src="js/state.js?v=202611030641"></script>
-    <script src="js/model.js?v=202611030641"></script>
-    <script src="js/storage.js?v=202611030641"></script>
-    <script src="js/sanitize.js?v=202611030641"></script>
-    <script src="js/ui.js?v=202611030641"></script>
-    <script src="js/format.js?v=202611030641"></script>
-    <script src="js/clipboard.js?v=202611030641"></script>
-    <script src="js/blocks.js?v=202611030641"></script>
-    <script src="js/cards.js?v=202611030641"></script>
-    <script src="js/render.js?v=202611030641"></script>
-    <script src="js/outline.js?v=202611030641"></script>
-    <script src="js/addmenu.js?v=202611030641"></script>
-    <script src="js/links.js?v=202611030641"></script>
-    <script src="js/multiselect.js?v=202611030641"></script>
-    <script src="js/history.js?v=202611030641"></script>
-    <script src="js/tables.js?v=202611030641"></script>
-    <script src="js/dnd.js?v=202611030641"></script>
-    <script src="js/block-actions.js?v=202611030641"></script>
-    <script src="js/tabs.js?v=202611030641"></script>
-    <script src="js/toolbar.js?v=202611030641"></script>
-    <script src="js/search.js?v=202611030641"></script>
-    <script src="js/cloud.js?v=202611030641"></script>
-    <script src="js/images.js?v=202611030641"></script>
-    <script src="js/files.js?v=202611030641"></script>
-    <script src="js/sync.js?v=202611030641"></script>
-    <script src="js/auth.js?v=202611030641"></script>
-    <script src="js/account.js?v=202611030641"></script>
-    <script src="js/settings.js?v=202611030641"></script>
-    <script src="js/themes.js?v=202611030641"></script>
-    <script src="js/books.js?v=202611030641"></script>
-    <script src="js/tour.js?v=202611030641"></script>
-    <script src="js/backup-reminder.js?v=202611030641"></script>
-    <script src="js/main.js?v=202611030641"></script>
+    <script src="js/config.js?v=202611060315"></script>
+    <script src="js/utils.js?v=202611060315"></script>
+    <script src="js/state.js?v=202611060315"></script>
+    <script src="js/model.js?v=202611060315"></script>
+    <script src="js/storage.js?v=202611060315"></script>
+    <script src="js/sanitize.js?v=202611060315"></script>
+    <script src="js/ui.js?v=202611060315"></script>
+    <script src="js/format.js?v=202611060315"></script>
+    <script src="js/clipboard.js?v=202611060315"></script>
+    <script src="js/blocks.js?v=202611060315"></script>
+    <script src="js/cards.js?v=202611060315"></script>
+    <script src="js/render.js?v=202611060315"></script>
+    <script src="js/outline.js?v=202611060315"></script>
+    <script src="js/addmenu.js?v=202611060315"></script>
+    <script src="js/links.js?v=202611060315"></script>
+    <script src="js/multiselect.js?v=202611060315"></script>
+    <script src="js/history.js?v=202611060315"></script>
+    <script src="js/tables.js?v=202611060315"></script>
+    <script src="js/dnd.js?v=202611060315"></script>
+    <script src="js/block-actions.js?v=202611060315"></script>
+    <script src="js/tabs.js?v=202611060315"></script>
+    <script src="js/toolbar.js?v=202611060315"></script>
+    <script src="js/search.js?v=202611060315"></script>
+    <script src="js/cloud.js?v=202611060315"></script>
+    <script src="js/images.js?v=202611060315"></script>
+    <script src="js/files.js?v=202611060315"></script>
+    <script src="js/sync.js?v=202611060315"></script>
+    <script src="js/auth.js?v=202611060315"></script>
+    <script src="js/account.js?v=202611060315"></script>
+    <script src="js/settings.js?v=202611060315"></script>
+    <script src="js/themes.js?v=202611060315"></script>
+    <script src="js/books.js?v=202611060315"></script>
+    <script src="js/tour.js?v=202611060315"></script>
+    <script src="js/backup-reminder.js?v=202611060315"></script>
+    <script src="js/main.js?v=202611060315"></script>
   </body>
 </html>
