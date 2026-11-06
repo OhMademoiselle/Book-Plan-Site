@@ -91,7 +91,7 @@ const plain = s => {
   return d.textContent.trim();
 };
 const lab = b => {
-  if (b.t === 'group') return 'Группа: ' + ttl(b.items[0]);
+  if (b.t === 'group') return 'Группа: ' + (b.n || ttl(b.items[0]));
   const s = plain(
     b.t === 'table'
       ? b.rows.slice(0, 2).flat().join(' ')
