@@ -49,7 +49,7 @@ function gateUI(retry) {
           h('h2', {
             class: 'logo',
             innerHTML:
-              '<svg class="lgm" viewBox="0 0 64 64" aria-hidden="true"><use href="#lg"/></svg><span class="lgt"><b>План</b> <i>книги</i></span>'
+              '<svg class="lgm" viewBox="0 0 64 64" aria-hidden="true"><use href="#lg"/></svg><span class="lgt"><b>Book</b> <i>Planner</i></span>'
           }),
           ...c
         )
@@ -203,7 +203,7 @@ function authScreen(mode, note) {
       h('h2', {
         class: 'logo',
         innerHTML:
-          '<svg class="lgm" viewBox="0 0 64 64" aria-hidden="true"><use href="#lg"/></svg><span class="lgt"><b>План</b> <i>книги</i></span>'
+          '<svg class="lgm" viewBox="0 0 64 64" aria-hidden="true"><use href="#lg"/></svg><span class="lgt"><b>Book</b> <i>Planner</i></span>'
       }),
       h(
         'p',
