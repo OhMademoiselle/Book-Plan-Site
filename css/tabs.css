@@ -46,19 +46,4 @@ button.tab.on {
   padding: 8px 0 10px;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--bd) transparent;
-}
-#tabs::-webkit-scrollbar {
-  height: 8px;
-}
-#tabs::-webkit-scrollbar-track {
-  background: transparent;
-}
-#tabs::-webkit-scrollbar-thumb {
-  background: var(--bd);
-  border-radius: 8px;
-}
-#tabs::-webkit-scrollbar-thumb:hover {
-  background: var(--mut);
 }
