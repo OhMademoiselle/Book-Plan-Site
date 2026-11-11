@@ -63,7 +63,7 @@
   line-height: 1.75;
 }
 .box.big .bkdone {
-  color: #2f9e5b;
+  color: var(--ok);
   font-weight: 600;
 }
 .bigbtn {
@@ -218,7 +218,7 @@
   color: var(--tx);
   border: 1px solid var(--bd);
   border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--sh2);
   padding: 12px;
 }
 .apop p {
@@ -226,13 +226,13 @@
   font-size: 14px;
   color: var(--mut);
 }
-.apop .ch {
+.apop .achips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 10px;
 }
-.apop .ch button {
+.apop .achips button {
   font: inherit;
   font-size: 14px;
   padding: 5px 11px;
@@ -242,7 +242,7 @@
   color: var(--tx);
   cursor: pointer;
 }
-.apop .ch button:hover {
+.apop .achips button:hover {
   background: var(--acbg);
   border-color: var(--ac);
 }
@@ -390,11 +390,11 @@
   cursor: pointer;
 }
 .it.dng {
-  border-color: #d9534f;
-  color: #d9534f;
+  border-color: var(--dng);
+  color: var(--dng);
 }
 .it.dng:hover {
-  background: rgba(217, 83, 79, 0.12);
+  background: color-mix(in srgb, var(--dng) 12%, transparent);
 }
 .gpre {
   white-space: pre-wrap;
