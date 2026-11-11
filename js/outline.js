@@ -108,6 +108,24 @@ function setupResize(handle, which) {
 setupResize(document.getElementById('rzo'), 'o');
 setupResize(document.getElementById('rzp'), 'i');
 
+/* ---- кнопка слева от заголовка: раскрывает и скрывает весь список блоков ---- */
+const otog = document.getElementById('otog');
+function applyListState() {
+  const off = !!layout.lc;
+  olist.hidden = off;
+  otog.textContent = off ? '▸' : '▾';
+  otog.setAttribute('aria-expanded', String(!off));
+  const t = off ? 'Показать список блоков' : 'Скрыть список блоков';
+  otog.title = t;
+  otog.setAttribute('aria-label', t);
+}
+otog.onclick = () => {
+  layout.lc = !layout.lc;
+  saveLayout();
+  applyListState();
+};
+applyListState();
+
 /* ---- структура: сворачивание групп (запоминается на устройстве) ---- */
 const FOLD_KEY = 'plan-knigi-olfold';
 let OL_FOLD = {};
