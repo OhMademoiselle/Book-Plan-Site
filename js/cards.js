@@ -62,10 +62,10 @@ function attrMenu(btn, b, c, ci) {
     inp = h('input', {
       type: 'text',
       maxLength: 40,
-      placeholder: 'Свой атрибут, например «Рост»',
+      placeholder: 'Свой атрибут',
       autocomplete: 'off'
     }),
-    chips = h('div', { class: 'ch' });
+    chips = h('div', { class: 'achips' });
   ATTR_PRESETS.filter(p => !used.has(p.toLowerCase())).forEach(p =>
     chips.append(
       h('button', { type: 'button', on: { click: () => addAttr(b, c, ci, p, all.checked) } }, p)
