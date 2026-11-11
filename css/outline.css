@@ -151,3 +151,13 @@
   outline: none;
   box-shadow: 0 0 0 3px var(--acbg);
 }
+
+/* кнопка, которая раскрывает и скрывает список блоков */
+.ohl {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+#olist[hidden] {
+  display: none;
+}
