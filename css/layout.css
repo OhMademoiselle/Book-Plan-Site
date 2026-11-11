@@ -162,7 +162,8 @@ body.resizing {
   align-items: center;
   justify-content: space-between;
 }
-.pcl {
+.pcl,
+.otog {
   width: 26px;
   height: 26px;
   border: none;
@@ -174,7 +175,8 @@ body.resizing {
   cursor: pointer;
   padding: 0;
 }
-.pcl:hover {
+.pcl:hover,
+.otog:hover {
   background: var(--acbg);
   color: var(--ac);
 }
